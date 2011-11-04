@@ -1,0 +1,15 @@
+INPUT(
+./release\analyzermodel.o
+./release\dimension.o
+./release\equation.o
+./release\globject.o
+./release\main.o
+./release\mainwindow.o
+./release\point.o
+./release\range.o
+./release\record.o
+./release\vector3f.o
+./release\moc_globject.o
+./release\moc_mainwindow.o
+./release\moc_range.o
+);

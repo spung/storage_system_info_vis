@@ -1,0 +1,15 @@
+INPUT(
+./debug/analyzermodel.o
+./debug/dimension.o
+./debug/equation.o
+./debug/globject.o
+./debug/main.o
+./debug/mainwindow.o
+./debug/point.o
+./debug/range.o
+./debug/record.o
+./debug/vector3f.o
+./debug/moc_globject.o
+./debug/moc_mainwindow.o
+./debug/moc_range.o
+);
