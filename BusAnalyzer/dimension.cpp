@@ -7,6 +7,11 @@ Dimension::Dimension(int id, QString title, bool vis, Equation *eq){
     this->scaleEq = eq;
 }
 
-double Dimension::getValue(double value){
-    return this->scaleEq->getValue(this->currentMin, this->currentMax, value);
+double Dimension::getValue(int mode, double value){
+    if(mode == MODE_OVERVIEW){
+        return this->scaleEq->getValue(this->min, this->max, value);
+    }
+    else if(mode == MODE_FOCUS){
+        return this->scaleEq->getValue(this->currentMin, this->currentMax, value);
+    }
 }

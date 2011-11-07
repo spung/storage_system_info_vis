@@ -134,6 +134,7 @@ void GLObject::paintGL(){
             glEnd();
 
             glColor3f(0.0, 0.0, 0.0);
+            drawX1 -= 0.05;
             this->renderText(drawX1, drawY1 + 0.01, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
 
             glColor3f(1.0, 0.0, 0.0);
@@ -165,9 +166,19 @@ void GLObject::paintGL(){
                 this->renderText(drawX1, maxPosition, 0.01, "Hit");
             break;
             default:
+                double tempMin, tempMax;
+                if(model->mode == MODE_OVERVIEW){
+                    tempMin = model->dimensions.at(model->order.at(currentDimPos))->min;
+                    tempMax = model->dimensions.at(model->order.at(currentDimPos))->max;
+                }
+                else if(model->mode == MODE_FOCUS){
+                    tempMin = model->dimensions.at(model->order.at(currentDimPos))->currentMin;
+                    tempMax = model->dimensions.at(model->order.at(currentDimPos))->currentMax;
+                }
+
                 if(currentDimPos == 0){
-                    this->renderText(drawX1 - axisWidth, minPosition, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMin, 0, 'g', 6));
-                    this->renderText(drawX1 - axisWidth, maxPosition, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMax, 0, 'g', 6));
+                    this->renderText(drawX1 - axisWidth, minPosition, 0.01, QString("%1").arg(tempMin, 0, 'g', 6));
+                    this->renderText(drawX1 - axisWidth, maxPosition, 0.01, QString("%1").arg(tempMax, 0, 'g', 6));
                 }
                 else{
                     this->renderText(drawX1, minPosition, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMin, 0, 'g', 6));
@@ -182,18 +193,16 @@ void GLObject::paintGL(){
         int counter = 0;
 
         foreach(Record *rec, model->records){            
-            if(model->mode == 0 ||
-                    (model->mode > 0 && rec->at(model->focus_dimension->id) <= model->focus_max && rec->at(model->focus_dimension->id) >= model->focus_min)){
-                //if(model->mode > 0){
-                  //  qDebug() << QString("focus value: %1").arg(rec->at(model->focus_dimension->id));
-                //}
-                if(rec->brushed){
-                    glColor4f(1.0, 0.0, 0.0, 0.15);
-                    glTranslatef(0.0f, 0.0f, 0.001f);
-                }
-                else if(model->mode > 0){
+            if(model->mode == MODE_OVERVIEW ||
+                    (model->mode == MODE_FOCUS && rec->at(model->focus_dimension->id) <= model->focus_max && rec->at(model->focus_dimension->id) >= model->focus_min)){
+
+                if(model->colorThreads){
                     //qDebug() << QString("hue: %1 saturation: %2 brightness: %3").arg(QString::number(rec->color.hslHue())).arg(QString::number(rec->color.saturation())).arg(QString::number(rec->color.value()));
-                    glColor4f(rec->color.redF(), rec->color.greenF(), rec->color.blueF(), 0.15);
+                    glColor4f(rec->color.redF(), rec->color.greenF(), rec->color.blueF(), 0.55);
+                }
+                else if(rec->brushed){
+                    glColor4f(1.0, 0.0, 0.0, 0.15);
+                    //glTranslatef(0.0f, 0.0f, 0.001f);
                 }
                 else{
                     glColor4f(0.0, 0.0, 0.0, 0.15);
@@ -208,8 +217,8 @@ void GLObject::paintGL(){
                         xVal1 = currentDimPos;
                         xVal2 = currentDimPos + 1;
 
-                        yVal1 = currDim->getValue(rec->at(model->order.at(currentDimPos)));
-                        yVal2 = nextDim->getValue(rec->at(model->order.at(currentDimPos + 1)));
+                        yVal1 = currDim->getValue(model->mode, rec->at(model->order.at(currentDimPos)));
+                        yVal2 = nextDim->getValue(model->mode, rec->at(model->order.at(currentDimPos + 1)));
 
                         drawY1 = -p2w_y(yVal1 * this->height());
                         drawY2 = -p2w_y(yVal2 * this->height());
@@ -237,8 +246,8 @@ void GLObject::paintGL(){
                     }
                 }
                 counter++;
-                if(rec->brushed)
-                    glTranslatef(0.0f, 0.0f, -0.001f);
+                //if(rec->brushed)
+                    //glTranslatef(0.0f, 0.0f, -0.001f);
             }
         }
         glPopMatrix();

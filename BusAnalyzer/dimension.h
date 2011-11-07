@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <QMainWindow>
 
+#define MODE_OVERVIEW           0
+#define MODE_FOCUS              1
 
 using namespace std;
 
@@ -25,7 +27,7 @@ public:
 
     Dimension(int id, QString title, bool vis, Equation *eq);
 
-    double getValue(double value);
+    double getValue(int mode, double value);
 };
 
 

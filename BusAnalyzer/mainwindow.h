@@ -89,11 +89,13 @@ private slots:
     void setLog();
     void insertDim();
     void focus();
-    void focusTest();
     void brush();
     void getRange(short action);
     void reset();
     void finishedDrawing();
+    void setOverviewMode();
+    void setFocusMode();
+    void setThreadMode();
 
 private:
     void createActions();
@@ -124,7 +126,9 @@ private:
     //QAction *renderIntoPixmapAct;
     QAction *clearPixmapAct;
     QAction *exitAct;
-    QAction *modeAct;
+    QAction *overviewModeAct;
+    QAction *focusModeAct;
+    QAction *threadModeAct;
     QAction *aboutAct;
     QAction *aboutQtAct;
     QAction *openAct;

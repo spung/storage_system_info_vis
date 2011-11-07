@@ -156,10 +156,30 @@ void MainWindow::insertDim(){
     this->refresh();
 }
 
-void MainWindow::focusTest(){
-    model->setFocus(model->focus_dimension, model->focus_min, model->focus_max);
+void MainWindow::setOverviewMode(){
+    model->mode = MODE_OVERVIEW;
+    overviewModeAct->setDisabled(true);
+    focusModeAct->setEnabled(true);
     this->refresh();
-    //getRange(ACTION_FOCUS);
+}
+
+void MainWindow::setFocusMode(){
+    model->mode = MODE_FOCUS;
+    focusModeAct->setDisabled(true);
+    overviewModeAct->setEnabled(true);
+    this->refresh();
+}
+
+void MainWindow::setThreadMode(){
+    if(model->colorThreads == false){
+        model->colorThreads = true;
+        threadModeAct->setText(QString("Disable Color Threads"));
+    }
+    else{
+        model->colorThreads = false;
+        threadModeAct->setText(QString("Enable Color Threads"));
+    }
+    this->refresh();
 }
 
 void MainWindow::focus(){
@@ -208,6 +228,7 @@ void MainWindow::getRange(short action){
                     break;
                 case ACTION_FOCUS:
                     model->setFocus(currentDim, minSlider->value(), maxSlider->value());
+                    setFocusMode();
                     break;
                 default:
                     break;
@@ -360,13 +381,23 @@ void MainWindow::createActions()
     resetAct = new QAction(tr("&Reset Transforms"), this);
     resetAct->setShortcut(tr("Ctrl+R"));
     connect(resetAct, SIGNAL(triggered()), this, SLOT(reset()));
+    resetAct->setDisabled(true);
 
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
-    modeAct = new QAction(tr("&Mode"), this);
-    connect(modeAct, SIGNAL(triggered()), this, SLOT(focusTest()));
+    overviewModeAct = new QAction(tr("&Overview"), this);
+    connect(overviewModeAct, SIGNAL(triggered()), this, SLOT(setOverviewMode()));
+    overviewModeAct->setDisabled(true);
+
+    focusModeAct = new QAction(tr("&Focus"), this);
+    connect(focusModeAct, SIGNAL(triggered()), this, SLOT(setFocusMode()));
+    focusModeAct->setDisabled(true);
+
+    threadModeAct = new QAction(tr("&Enable Color Threads"), this);
+    connect(threadModeAct, SIGNAL(triggered()), this, SLOT(setThreadMode()));
+    threadModeAct->setDisabled(true);
 
     aboutAct = new QAction(tr("&About"), this);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -406,7 +437,11 @@ void MainWindow::createMenus()
     fileMenu->addAction(exitAct);
 
     modeMenu = menuBar()->addMenu(tr("&Mode"));
-    modeMenu->addAction(modeAct);
+    modeMenu->addAction(overviewModeAct);
+    modeMenu->addAction(focusModeAct);
+    modeMenu->addSeparator();
+    modeMenu->addAction(threadModeAct);
+
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutAct);
 }
@@ -452,6 +487,9 @@ void MainWindow::loadFile(const QString &fileName)
 
     this->refresh();
     statusBar()->showMessage(tr("File loaded"), 2000);
+
+    resetAct->setEnabled(true);
+    threadModeAct->setEnabled(true);
 }
 
 QSize MainWindow::getSize()
