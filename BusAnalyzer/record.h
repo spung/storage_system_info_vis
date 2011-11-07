@@ -2,6 +2,7 @@
 #define RECORD_H
 
 #include <QString>
+#include <QColor>
 
 // definitions specific to the command column of input data
 #define COMMAND_WRITE 1
@@ -44,6 +45,8 @@ public:
     uint32_t lba, startId, endId, length, qDepth, eqDepth, fifoPos, streamNum;
 
     bool brushed;
+    QColor color;
+    int thread;
 
     QString print();
     double at(int index);

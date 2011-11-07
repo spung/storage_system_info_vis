@@ -13,10 +13,26 @@ bool AnalyzerModel::inFocus(Record*rec){
         return false;
 }
 
+bool AnalyzerModel::isEnumDim(int dim){
+    if(dim == 4 || dim == 5 || dim == 9 || dim == 14 || dim == 15 || dim == 18){
+        return true;
+    }
+}
+
+typedef struct {
+  int timeToLive;
+  QColor color;
+} Thread;
+
 void AnalyzerModel::setFocus(Dimension*dim, double min, double max){
+    long threadCount = 0;
+    int oddColor = 0;
+    int evenColor = 180;
+    int color;
     this->focus_dimension = dim;
     this->focus_min = min;
     this->focus_max = max;
+    srand(1);
 
     this->mode = MODE_FOCUS_THREADS;
 
@@ -27,24 +43,81 @@ void AnalyzerModel::setFocus(Dimension*dim, double min, double max){
         dimensions.at(order.at(currentDimPos))->currentMax = 0;
     }
 
+    QHash<int, Thread> liveThreads;
+    long currentThread;
+    int reach = dimensions.at(13)->max;
+    //qDebug() << QString("reach: %1").arg(QString::number(reach));
+
     foreach(Record *rec, records){
         if(inFocus(rec)){
-                //(model->mode > 0 && rec->at(model->order.at(model->focus_dimension->id)) < model->focus_max && rec->at(model->order.at(model->focus_dimension->id)) > model->focus_min)){
+            // calculate new currentMin/currentMax for each dimension
             for(int currentDimPos = 0; currentDimPos < order.size(); currentDimPos++){
-                currVal = rec->at(order.at(currentDimPos));
-                if(currVal < dimensions.at(order.at(currentDimPos))->currentMin){
-                    dimensions.at(order.at(currentDimPos))->currentMin = currVal;
-                    qDebug() << QString("min: %1").arg(QString::number(dimensions.at(order.at(currentDimPos))->currentMin));
+                dimensions.at(currentDimPos)->currentMin = dimensions.at(currentDimPos)->min;
+                dimensions.at(currentDimPos)->currentMax = dimensions.at(currentDimPos)->max;
+                if(!isEnumDim(currentDimPos)){
+                    currVal = rec->at(currentDimPos);
+                    if(currVal < dimensions.at(currentDimPos)->currentMin){
+                        dimensions.at(currentDimPos)->currentMin = currVal;
 
+                    }
+                    if(currVal > dimensions.at(currentDimPos)->currentMax){
+                        dimensions.at(currentDimPos)->currentMax = currVal;
+                    }
                 }
-                if(currVal > dimensions.at(order.at(currentDimPos))->currentMax){
-                    dimensions.at(order.at(currentDimPos))->currentMax = currVal;
-                    qDebug() << QString("max: %1").arg(QString::number(dimensions.at(order.at(currentDimPos))->currentMax));
+            }
+
+            // identify threads
+            currentThread = rec->at(7);
+            //qDebug() << QString("currentThread: %1").arg(QString::number(currentThread));
+            Thread insertThread;
+
+            if(liveThreads.contains(currentThread)){
+                insertThread = liveThreads.value(currentThread);
+                rec->color = insertThread.color;
+                liveThreads.remove(currentThread);
+            }
+            else{
+                threadCount++;
+
+                evenColor +=20;
+                color = evenColor;
+                if(evenColor > 359){
+                    evenColor = 0;
                 }
+                /*
+                if(threadCount %2 == 0){
+                    evenColor++;
+                    if(evenColor > 359)
+                        evenColor = 0;
+                    color = evenColor;
+                }
+                else{
+                    oddColor++;
+                    if(oddColor > 359)
+                        oddColor = 0;
+                    color = oddColor;
+                }*/
+
+                QColor col = QColor::fromHsv(rand() % 360, 255, 255, 255);
+                insertThread.color = col;
+                rec->color = insertThread.color;
+            }
+            insertThread.timeToLive = reach;
+            liveThreads.insert(currentThread + rec->at(8), insertThread);
+
+            QHashIterator<int, Thread> iter(liveThreads);
+            while(iter.hasNext()){
+                if(iter.peekNext().key() != currentThread){
+                    long currentIterKey = iter.peekNext().key();
+                    Thread currentIterVal = iter.peekNext().value();
+                    currentIterVal.timeToLive--;
+                    liveThreads.insert(currentIterKey, currentIterVal);
+                }
+                iter.next();
             }
         }
     }
-
+    qDebug() << QString("total threads: %1").arg(QString::number(threadCount));
 }
 
 void AnalyzerModel::setBrushCriteria(int dimension, double min, double max){

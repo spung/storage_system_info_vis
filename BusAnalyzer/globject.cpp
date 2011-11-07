@@ -181,15 +181,19 @@ void GLObject::paintGL(){
         // draw records
         int counter = 0;
 
-        foreach(Record *rec, model->records){
+        foreach(Record *rec, model->records){            
             if(model->mode == 0 ||
-                    (model->mode > 0 && rec->at(model->focus_dimension->id) < model->focus_max && rec->at(model->focus_dimension->id) > model->focus_min)){
+                    (model->mode > 0 && rec->at(model->focus_dimension->id) <= model->focus_max && rec->at(model->focus_dimension->id) >= model->focus_min)){
                 //if(model->mode > 0){
                   //  qDebug() << QString("focus value: %1").arg(rec->at(model->focus_dimension->id));
                 //}
                 if(rec->brushed){
                     glColor4f(1.0, 0.0, 0.0, 0.15);
                     glTranslatef(0.0f, 0.0f, 0.001f);
+                }
+                else if(model->mode > 0){
+                    //qDebug() << QString("hue: %1 saturation: %2 brightness: %3").arg(QString::number(rec->color.hslHue())).arg(QString::number(rec->color.saturation())).arg(QString::number(rec->color.value()));
+                    glColor4f(rec->color.redF(), rec->color.greenF(), rec->color.blueF(), 0.15);
                 }
                 else{
                     glColor4f(0.0, 0.0, 0.0, 0.15);
@@ -238,7 +242,7 @@ void GLObject::paintGL(){
             }
         }
         glPopMatrix();
-        qDebug()<<"done draw loop";
+        //qDebug()<<"done draw loop";
 
         emit doneRendering();
         //qDebug()<<"emitted value changed";

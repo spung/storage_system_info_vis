@@ -3,6 +3,9 @@
 
 #include "dimension.h"
 #include <QFile>
+#include <QStack>
+#include <QColor>
+#include <time.h>
 #include "record.h"
 #include <QVector>
 #include <QHash>
@@ -27,6 +30,7 @@ public:
     void setBrushCriteria(int dimension, double min, double max);
     void setFocus(Dimension*dim, double min, double max);
     bool inFocus(Record*rec);
+    bool isEnumDim(int dim);
 
     QString error;
     QVector<Record*> records;
