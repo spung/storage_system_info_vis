@@ -92,7 +92,6 @@ MainWindow::MainWindow()
 }
 
 void MainWindow::ctxMenu(const QPoint &pos){
-    qDebug() << "clicked";
     if(model != NULL){
 
         //float section = pixmapLabel->width()/(2*model->order.size() - 1);
@@ -190,6 +189,7 @@ void MainWindow::brush(){
     getRange(ACTION_BRUSH);
 }
 
+// displays a slider to the user to select a range
 void MainWindow::getRange(short action){
     Dimension *currentDim = model->dimensions.at(model->order.at(sectionClicked/2));
     Range *range = new Range(this);
@@ -258,24 +258,21 @@ void MainWindow::dimensionClick(const QPoint &pos){
     menu->exec(glWidget->mapToGlobal(pos));
 }
 
-void MainWindow::reset()
-{
+// reset transforms
+void MainWindow::reset(){
     glWidget->reset();
     xSlider->setValue(0);
     refresh();
 }
 
+// notify the user in the status bar that drawing is finished.
 void MainWindow::finishedDrawing(){
     statusBar()->showMessage(tr("Finished."), 2000);
 }
 
+// show open file dialog to user
 void MainWindow::open()
 {
-//    QString fileName = QFileDialog::getOpenFileName(
-//                this,
-//                "Select a CSV file to open",
-//                QString("/Users/").append("Steven").append("/Desktop"),
-//                " (*.csv)");
     QString fileName = QFileDialog::getOpenFileName(
                 this,
                 "Select a CSV file to open",
@@ -296,25 +293,6 @@ void MainWindow::resizeEvent(QResizeEvent *e)
   //this->setGL();
 }
 
-void MainWindow::setPixelmap()
-{
-    renderCount++;
-    qDebug()<<"received, running setpixelmap";
-    qDebug()<<renderCount;
-    if(renderCount%2 == 0){
-        renderCount = 0;
-        pixmapLabel = new QLabel;
-//        QImage image = glWidget->grabFrameBuffer();
-//        setPixmap(QPixmap::fromImage(image));
-        QImage image = glWidget->grabFrameBuffer();
-        setPixmap(QPixmap::fromImage(image));
-
-        pixmapLabel->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(pixmapLabel, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(ctxMenu(const QPoint &)));
-    }
-    qDebug()<<"finished setting";
-}
-
 void MainWindow::setGL()
 {
  //   qDebug() << model->dimensions.at(0)->title;
@@ -322,25 +300,6 @@ void MainWindow::setGL()
 
     connect(glWidget, SIGNAL(valueChanged()),
             this, SLOT(setPixelmap()) );
-
-    //glWidgetArea->hide();
-    glWidgetArea->setWidget(glWidget);
-    glWidget->model = this->model;
-    //setPixmap(QPixmap());
-    this->refresh();
-}
-
-void MainWindow::grabFrameBuffer()
-{
-    pixmapLabel = new QLabel;
-    QImage image = glWidget->grabFrameBuffer();
-    setPixmap(QPixmap::fromImage(image));
-}
-
-void MainWindow::clearPixmap()
-{
- //   qDebug() << model->dimensions.at(0)->title;
-    glWidget = new GLObject;
 
     //glWidgetArea->hide();
     glWidgetArea->setWidget(glWidget);
@@ -403,11 +362,8 @@ void MainWindow::createActions()
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 }
 
+// refresh the rendering to show changes in the model
 void MainWindow::refresh(){
-//    glWidgetArea->viewport()->repaint();
-//    glWidgetArea->viewport()->update();
-//    QProgressBar p = QProgressBar(glWidget);
-
     statusBar()->showMessage(tr("Rendering..."), 2000);
     glWidgetArea->hide();
     glWidgetArea->show();    
@@ -460,17 +416,6 @@ QSlider *MainWindow::createSlider(const char *changedSignal,
     return slider;
 }
 
-void MainWindow::setPixmap(const QPixmap &pixmap)
-{
-    pixmapLabel->setPixmap(pixmap);
-    QSize size = pixmap.size();
-    if (size - QSize(1, 0) == pixmapLabelArea->maximumViewportSize())
-        size -= QSize(1, 0);
-    pixmapLabel->resize(size);
-
-    glWidgetArea->setWidget(pixmapLabel);
-}
-
 void MainWindow::loadFile(const QString &fileName)
 //! [42] //! [43]
 {
@@ -490,6 +435,56 @@ void MainWindow::loadFile(const QString &fileName)
 
     resetAct->setEnabled(true);
     threadModeAct->setEnabled(true);
+}
+/*
+
+void MainWindow::grabFrameBuffer()
+{
+    pixmapLabel = new QLabel;
+    QImage image = glWidget->grabFrameBuffer();
+    setPixmap(QPixmap::fromImage(image));
+}
+
+void MainWindow::clearPixmap()
+{
+ //   qDebug() << model->dimensions.at(0)->title;
+    glWidget = new GLObject;
+
+    //glWidgetArea->hide();
+    glWidgetArea->setWidget(glWidget);
+    glWidget->model = this->model;
+    //setPixmap(QPixmap());
+    this->refresh();
+}
+
+void MainWindow::setPixmap(const QPixmap &pixmap)
+{
+    pixmapLabel->setPixmap(pixmap);
+    QSize size = pixmap.size();
+    if (size - QSize(1, 0) == pixmapLabelArea->maximumViewportSize())
+        size -= QSize(1, 0);
+    pixmapLabel->resize(size);
+
+    glWidgetArea->setWidget(pixmapLabel);
+}
+
+void MainWindow::setPixelmap()
+{
+    renderCount++;
+    qDebug()<<"received, running setpixelmap";
+    qDebug()<<renderCount;
+    if(renderCount%2 == 0){
+        renderCount = 0;
+        pixmapLabel = new QLabel;
+//        QImage image = glWidget->grabFrameBuffer();
+//        setPixmap(QPixmap::fromImage(image));
+        QImage image = glWidget->grabFrameBuffer();
+        setPixmap(QPixmap::fromImage(image));
+
+        pixmapLabel->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(pixmapLabel, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(ctxMenu(const QPoint &)));
+    }
+    qDebug()<<"finished setting";
 }
 
 QSize MainWindow::getSize()
@@ -514,3 +509,4 @@ QSize MainWindow::getSize()
 
     return glWidget->size();
 }
+*/
