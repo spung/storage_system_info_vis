@@ -52,6 +52,12 @@ public:
     bool isEnumDim(int dim);
     void generateColorThreads();
     void initOrder();
+    Dimension* getBrushDimension();
+    Dimension* getFocusDimension();
+    double getBrushMax();
+    double getBrushMin();
+    double getFocusMax();
+    double getFocusMin();
 
     QString error;
     QVector<Record*> records;
@@ -61,7 +67,8 @@ public:
 
     short mode;
     Dimension* focus_dimension;
-    double focus_min, focus_max;
+    Dimension* brush_dimension;
+    double focus_min, focus_max, brush_min, brush_max;
     bool colorThreads;
 };
 

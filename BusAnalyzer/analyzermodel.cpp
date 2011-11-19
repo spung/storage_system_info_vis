@@ -28,16 +28,19 @@ typedef struct {
 } Thread;
 
 void AnalyzerModel::generateColorThreads(){
-    QHash<int, Thread> liveThreads;
+    QMap<int, Thread> liveThreads;
     long currentThread;
     long threadCount = 0;
     Thread insertThread;
+    bool newThread = false;
 
     // get the largest queue value of this dataset
     int reach = dimensions.at(QUEUE_DEPTH)->max;
 
     // set seed to 1 so the colors are always the same for this dataset
     srand(1);
+
+    int lbaDelta = 1000;
 
     // go through each record
     foreach(Record *rec, records){
@@ -47,14 +50,25 @@ void AnalyzerModel::generateColorThreads(){
         currentThread = rec->at(LBA);
 
         // if the thread is present, set this rec to that color
-        if(liveThreads.contains(currentThread)){
-            insertThread = liveThreads.value(currentThread);
-            rec->color = insertThread.color;
-            liveThreads.remove(currentThread);
+        QMapIterator<int, Thread> iter(liveThreads);
+
+        while(iter.hasNext() && !(currentThread >= iter.peekNext().key() - lbaDelta && currentThread <= iter.peekNext().key() + lbaDelta)){
+            iter.next();
         }
-        // else insert the new thread into liveThreads
+
+        // this belongs to a preexisting thread in liveThreads
+        if(currentThread >= iter.peekNext().key() - lbaDelta && currentThread <= iter.peekNext().key() + lbaDelta){
+            newThread = false;
+            rec->color = iter.peekNext().value().color;
+            insertThread.color = rec->color;
+            liveThreads.remove(iter.peekNext().key());
+        }
+        // this is a new thread not in liveThreads
         else{
+            newThread = true;
             threadCount++;
+
+            qDebug() << QString("thread: %1").arg(QString::number(threadCount));
 
             // set the color of this thread to the next random color
             QColor col = QColor::fromHsv(rand() % 360, 255, 255, 255);
@@ -62,22 +76,44 @@ void AnalyzerModel::generateColorThreads(){
             rec->color = insertThread.color;
         }
 
+//        if(liveThreads.contains(currentThread)){
+//            insertThread = liveThreads.value(currentThread);
+//            rec->color = insertThread.color;
+//            liveThreads.remove(currentThread);
+//        }
+//        // else insert the new thread into liveThreads
+//        else{
+//            threadCount++;
+
+//            // set the color of this thread to the next random color
+//            QColor col = QColor::fromHsv(rand() % 360, 255, 255, 255);
+//            insertThread.color = col;
+//            rec->color = insertThread.color;
+//        }
+
         // reset time to live for this thread
         insertThread.timeToLive = reach;
 
         // the next expected LBA for this thread should be this LBA + the cmd length
-        liveThreads.insert(currentThread + rec->at(LENGTH), insertThread);
+        liveThreads.insert(currentThread, insertThread);
 
-        // decrement all other live threads
-        QHashIterator<int, Thread> iter(liveThreads);
-        while(iter.hasNext()){
-            if(iter.peekNext().key() != currentThread){
-                long currentIterKey = iter.peekNext().key();
-                Thread currentIterVal = iter.peekNext().value();
-                currentIterVal.timeToLive--;
-                liveThreads.insert(currentIterKey, currentIterVal);
+        if(newThread){
+            // decrement all other live threads
+            iter.toFront();
+            while(iter.hasNext()){
+                if(iter.peekNext().key() != currentThread){
+                    long currentIterKey = iter.peekNext().key();
+                    Thread currentIterVal = iter.peekNext().value();
+                    currentIterVal.timeToLive--;
+                    if(currentIterVal.timeToLive == 0){
+                        liveThreads.remove(currentIterKey);
+                    }
+                    else{
+                        liveThreads.insert(currentIterKey, currentIterVal);
+                    }
+                }
+                iter.next();
             }
-            iter.next();
         }
     }
     qDebug() << QString("total threads: %1").arg(QString::number(threadCount));
@@ -121,6 +157,10 @@ void AnalyzerModel::setFocus(Dimension*dim, double min, double max){
 }
 
 void AnalyzerModel::setBrushCriteria(int dimension, double min, double max){
+    Dimension *tempDim = dimensions.at(dimension);
+    this->brush_dimension = tempDim;
+    brush_min = min;
+    brush_max = max;
     foreach(Record *rec, records){
         if(rec->at(dimension) >= min && rec->at(dimension) <= max ){
             rec->brushed = true;
@@ -128,6 +168,30 @@ void AnalyzerModel::setBrushCriteria(int dimension, double min, double max){
         else
             rec->brushed = false;
     }
+}
+
+double AnalyzerModel::getBrushMin(){
+    return brush_min;
+}
+
+double AnalyzerModel::getBrushMax(){
+    return brush_max;
+}
+
+double AnalyzerModel::getFocusMax(){
+    return focus_max;
+}
+
+double AnalyzerModel::getFocusMin(){
+    return focus_min;
+}
+
+Dimension* AnalyzerModel::getBrushDimension(){
+    return brush_dimension;
+}
+
+Dimension* AnalyzerModel::getFocusDimension(){
+    return focus_dimension;
 }
 
 void AnalyzerModel::printRecords(){
@@ -186,12 +250,53 @@ bool AnalyzerModel::loadFile(const QString &fileName){
 
     // dimensions
     for(int i = 0; i<count;i++){
-        if(i == 6 || i == 11 || i == 12 || i == 15){
-            dimensions.append(new Dimension(i,list.at(i), true, new LogTen()));
+        Discrete *discretePointer = new Discrete(i, list.at(i), true, new Linear());
+        Dimension *newDim = discretePointer;
+        switch(i){
+        case QUEUEABLE:
+            discretePointer->insertNameValue(new QString("False"));
+            discretePointer->insertNameValue(new QString("True"));
+            break;
+        case CMD:
+            discretePointer->insertNameValue(new QString("-"));
+            discretePointer->insertNameValue(new QString("Write"));
+            discretePointer->insertNameValue(new QString("Read"));
+            discretePointer->insertNameValue(new QString("F"));
+            break;
+        case ALIGNMENT:
+            discretePointer->insertNameValue(new QString("None"));
+            discretePointer->insertNameValue(new QString("Aligned End"));
+            discretePointer->insertNameValue(new QString("Aligned End Stream"));
+            discretePointer->insertNameValue(new QString("Aligned Start"));
+            discretePointer->insertNameValue(new QString("Aligned Start Stream"));
+            discretePointer->insertNameValue(new QString("Aligned Fully"));
+            discretePointer->insertNameValue(new QString("Aligned Fully Stream"));
+            discretePointer->insertNameValue(new QString("Unaligned Fully"));
+            break;
+        case FUA:
+            discretePointer->insertNameValue(new QString("False"));
+            discretePointer->insertNameValue(new QString("True"));
+            break;
+        case SEQUENTIAL:
+            discretePointer->insertNameValue(new QString("None"));
+            discretePointer->insertNameValue(new QString("Sequential"));
+            discretePointer->insertNameValue(new QString("Sequential Stream"));
+            break;
+        case CACHE_HIT:
+            discretePointer->insertNameValue(new QString("Miss"));
+            discretePointer->insertNameValue(new QString("Hit"));
+            break;
+        default:
+            if(i == INTER_CMD_TIME || i == CCT || i == QUEUE_CCT || i == FIFO_POS ){
+                newDim = new Continuous(i, list.at(i), true, new LogTen());
+            }
+            else{
+                newDim = new Continuous(i, list.at(i), true, new Linear());
+            }
+            break;
         }
-        else{
-            dimensions.append(new Dimension(i,list.at(i), true, new Linear()));
-        }
+        dimensions.append(newDim);
+
         dimensions.at(i)->min = 9999999.9;
         dimensions.at(i)->max = 0;
         order.append(i);
@@ -283,7 +388,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
                     tempRecord->alignment = ALIGNED_FULLY_UNALIGNED;
                 else{
                     tempRecord->alignment = ALIGNED_NONE;
-                    if(list.at(i).length()) qDebug() << "***ERROR READING IN!! ** " + list.at(i);
+                    if(list.at(i).length()) qDebug() << "***alignment ERROR READING IN!! ** " + list.at(i);
                 }
                 currentValue = tempRecord->alignment;
                 break;
@@ -307,14 +412,14 @@ bool AnalyzerModel::loadFile(const QString &fileName){
                 tempRecord->fifoPos = list.at(i).toLong();
                 break;
             case 16:
-                if(list.at(i).compare(SEQ_TEXT) == 0)
+                if(list.at(i).compare(SEQ_TEXT) == 0 || list.at(i).compare(SEQ_TEXT_ALT) == 0)
                     tempRecord->sequential = SEQ;
                 else if(list.at(i).compare(SEQ_STREAM_TEXT) == 0
                         || list.at(i).compare(SEQ_STREAM_TEXT_ALT) == 0)
                     tempRecord->sequential = SEQ_STREAM;
                 else{
                     tempRecord->sequential = SEQ_NONE;
-                    if(list.at(i).length()) qDebug() << "***ERROR READING IN!! ** " + list.at(i);
+                    //if(list.at(i).length()) qDebug() << "***sequential ERROR READING IN!! ** " + list.at(i);
                 }
                 currentValue = tempRecord->sequential;
                 break;
@@ -340,10 +445,12 @@ bool AnalyzerModel::loadFile(const QString &fileName){
 
     for(int i = 0; i<count;i++){
         dimensions.at(i)->difference = dimensions.at(i)->max - dimensions.at(i)->min;
-        if(dimensions.at(i)->max == dimensions.at(i)->min){
-            order.remove(i);
-            dimensions.at(i)->visible = false;
-        }
+//        if(dimensions.at(i)->max == dimensions.at(i)->min){
+//            qDebug() << "trying to remove";
+//            order.remove(i);
+//            qDebug() << "successfully removed";
+//            dimensions.at(i)->visible = false;
+//        }
         dimensions.at(i)->currentMin = dimensions.at(i)->min;
         dimensions.at(i)->currentMax = dimensions.at(i)->max;
 //        qDebug() << QString("dimension: %1, min: %2, max: %3").arg(QString::number(i)).arg(QString::number(dimensions.at(i)->min)).arg(QString::number(dimensions.at(i)->max));

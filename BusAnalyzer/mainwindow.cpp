@@ -193,7 +193,6 @@ void MainWindow::brush(){
 void MainWindow::getRange(short action){
     Dimension *currentDim = model->dimensions.at(model->order.at(sectionClicked/2));
     Range *range = new Range(this);
-    range->setWindowTitle("Select Brush Range");
 
     qFindChild<QLabel*>(range, "title")->setText(currentDim->title);
     qFindChild<QLabel*>(range, "minMin")->setText(QString("%1").arg(currentDim->min, 0, 'g', 10));
@@ -216,6 +215,23 @@ void MainWindow::getRange(short action){
     QLabel *currentMax = qFindChild<QLabel*>(range, "currentMaxValue");
     currentMax->setText(QString::number(maxSlider->value()));
     connect(maxSlider, SIGNAL(valueChanged(int)), currentMax, SLOT(setNum(int)));
+
+    switch(action){
+        case ACTION_BRUSH:
+            range->setWindowTitle("Select Brush Range");
+            if(model->getBrushDimension()->id == model->order.at(sectionClicked/2)){
+                minSlider->setValue(model->getBrushMin());
+                maxSlider->setValue(model->getBrushMax());
+            }
+            break;
+        case ACTION_FOCUS:
+            range->setWindowTitle("Select Focus Range");
+            minSlider->setValue(currentDim->getCurrentMin());
+            maxSlider->setValue(currentDim->getCurrentMax());
+            break;
+        default:
+            break;
+    }
 
     if(range->exec() == Range::Accepted){
         if(minSlider->value() > maxSlider->value()){
@@ -436,7 +452,7 @@ void MainWindow::loadFile(const QString &fileName)
     resetAct->setEnabled(true);
     threadModeAct->setEnabled(true);
 }
-/*
+/* Possibly don't need these functions */
 
 void MainWindow::grabFrameBuffer()
 {
@@ -509,4 +525,3 @@ QSize MainWindow::getSize()
 
     return glWidget->size();
 }
-*/

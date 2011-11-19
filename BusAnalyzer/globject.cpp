@@ -55,7 +55,7 @@ void GLObject::mouseMoveEvent(QMouseEvent *event)
             xTranslate += dx;
             yTranslate += dy;
         }
-        qDebug()<<QString("moved: width: %1, height: %2").arg(width()).arg(height());
+        //qDebug()<<QString("moved: width: %1, height: %2").arg(width()).arg(height());
     }
 
     lastPos = event->pos();
@@ -65,7 +65,7 @@ void GLObject::mouseMoveEvent(QMouseEvent *event)
 
 void GLObject::mousePressEvent(QMouseEvent *event)
 {
-    qDebug()<<QString("mouse clicked at: x: %1, y: %2").arg(event->x()).arg(event->y());
+    //qDebug()<<QString("mouse clicked at: x: %1, y: %2").arg(event->x()).arg(event->y());
     lastPos = event->pos();
 }
 
@@ -139,6 +139,39 @@ void GLObject::paintGL(){
 
             glColor3f(1.0, 0.0, 0.0);
 
+            Dimension *currentDim = model->dimensions.at(model->order.at(currentDimPos));
+            int values = currentDim->getNameValuesSize();
+            if(values != 0){
+                Discrete *currentDiscrete = dynamic_cast<Discrete*>(currentDim);
+                for(int i = 0; i<values; i++){
+                    if(i == 0){
+                        this->renderText(drawX1, minPosition, 0.01, currentDiscrete->getNameValueAt(i));
+                    }
+                    else
+                        this->renderText(drawX1, -p2w_y(i*1.0/(values-1) * this->height()), 0.01, currentDiscrete->getNameValueAt(i));
+                }
+            }
+            else{
+                double tempMin, tempMax;
+                if(model->mode == MODE_OVERVIEW){
+                    tempMin = model->dimensions.at(model->order.at(currentDimPos))->min;
+                    tempMax = model->dimensions.at(model->order.at(currentDimPos))->max;
+                }
+                else if(model->mode == MODE_FOCUS){
+                    tempMin = model->dimensions.at(model->order.at(currentDimPos))->currentMin;
+                    tempMax = model->dimensions.at(model->order.at(currentDimPos))->currentMax;
+                }
+
+                if(currentDimPos == 0){
+                    this->renderText(drawX1 - axisWidth, minPosition, 0.01, QString("%1").arg(tempMin, 0, 'g', 6));
+                    this->renderText(drawX1 - axisWidth, maxPosition, 0.01, QString("%1").arg(tempMax, 0, 'g', 6));
+                }
+                else{
+                    this->renderText(drawX1, minPosition, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMin, 0, 'g', 6));
+                    this->renderText(drawX1, maxPosition, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMax, 0, 'g', 6));
+                }
+            }
+/*
             switch(model->order.at(currentDimPos)){
             case 5:
                 this->renderText(drawX1, minPosition, 0.01, "None");
@@ -186,7 +219,7 @@ void GLObject::paintGL(){
                 }
 
             break;
-            }
+            }*/
         }
 
         // draw records

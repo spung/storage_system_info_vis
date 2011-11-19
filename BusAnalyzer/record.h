@@ -29,6 +29,7 @@
 #define ALIGNED_NONE            0
 
 // definitions specific to the sequence column of input data
+#define SEQ_TEXT_ALT    "Sequential"
 #define SEQ_TEXT          "seq"
 #define SEQ_STREAM_TEXT   "seq (stream)"
 #define SEQ_STREAM_TEXT_ALT   "seq (stream)"

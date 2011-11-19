@@ -15,3 +15,38 @@ double Dimension::getValue(int mode, double value){
         return this->scaleEq->getValue(this->currentMin, this->currentMax, value);
     }
 }
+
+double Dimension::getCurrentMin(){
+    return currentMin;
+}
+
+double Dimension::getCurrentMax(){
+    return currentMax;
+}
+
+
+Discrete::Discrete(int id, QString title, bool vis, Equation *eq) : Dimension(id, title, vis, eq){
+    this->id = id;
+    this->title = title;
+    this->visible = vis;
+    this->scaleEq = eq;
+}
+
+void Discrete::insertNameValue(QString *name){
+    nameValues.append(*name);
+}
+
+int Discrete::getNameValuesSize(){
+    return nameValues.size();
+}
+
+QString Discrete::getNameValueAt(int position){
+    return nameValues.at(position);
+}
+
+Continuous::Continuous(int id, QString title, bool vis, Equation *eq) : Dimension(id, title, vis, eq){
+    this->id = id;
+    this->title = title;
+    this->visible = vis;
+    this->scaleEq = eq;
+}
