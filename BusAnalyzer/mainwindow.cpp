@@ -189,6 +189,28 @@ void MainWindow::brush(){
     getRange(ACTION_BRUSH);
 }
 
+void MainWindow::setMinField(int value){
+    currentMin->setText(QString::number(value));
+}
+
+void MainWindow::setMaxField(int value){
+    currentMax->setText(QString::number(value));
+}
+
+void MainWindow::setMinSlider(QString value){
+    bool ok;
+    int intVal = value.toInt(&ok, 10);
+    if(ok)
+        minSlider->setValue(intVal);
+}
+
+void MainWindow::setMaxSlider(QString value){
+    bool ok;
+    int intVal = value.toInt(&ok, 10);
+    if(ok)
+        maxSlider->setValue(intVal);
+}
+
 // displays a slider to the user to select a range
 void MainWindow::getRange(short action){
     Dimension *currentDim = model->dimensions.at(model->order.at(sectionClicked/2));
@@ -200,21 +222,23 @@ void MainWindow::getRange(short action){
     qFindChild<QLabel*>(range, "maxMin")->setText(QString("%1").arg(currentDim->min, 0, 'g', 10));
     qFindChild<QLabel*>(range, "maxMax")->setText(QString("%1").arg(currentDim->max, 0, 'g', 10));
 
-    QSlider *minSlider = qFindChild<QSlider*>(range, "minSlider");
+    minSlider = qFindChild<QSlider*>(range, "minSlider");
     minSlider->setMinimum(floor(currentDim->min));
     minSlider->setMaximum(ceil(currentDim->max));
 
-    QSlider *maxSlider = qFindChild<QSlider*>(range, "maxSlider");
+    maxSlider = qFindChild<QSlider*>(range, "maxSlider");
     maxSlider->setMinimum(floor(currentDim->min));
     maxSlider->setMaximum(ceil(currentDim->max));
 
-    QLabel *currentMin = qFindChild<QLabel*>(range, "currentMinValue");
+    currentMin = qFindChild<QLineEdit*>(range, "currentMinValue");
     currentMin->setText(QString::number(minSlider->value()));
-    connect(minSlider, SIGNAL(valueChanged(int)), currentMin, SLOT(setNum(int)));
+    connect( minSlider, SIGNAL(sliderMoved(int)), this, SLOT(setMinField(int)) );
+    connect(currentMin, SIGNAL(textChanged(QString)), this, SLOT(setMinSlider(QString)));
 
-    QLabel *currentMax = qFindChild<QLabel*>(range, "currentMaxValue");
-    currentMax->setText(QString::number(maxSlider->value()));
-    connect(maxSlider, SIGNAL(valueChanged(int)), currentMax, SLOT(setNum(int)));
+    currentMax = qFindChild<QLineEdit*>(range, "currentMaxValue");
+    currentMax->setText(QString::number(ceil(currentDim->max)));
+    connect( maxSlider, SIGNAL(sliderMoved(int)), this, SLOT(setMaxField(int)) );
+    connect(currentMax, SIGNAL(textChanged(QString)), this, SLOT(setMaxSlider(QString)));
 
     switch(action){
         case ACTION_BRUSH:
@@ -227,7 +251,9 @@ void MainWindow::getRange(short action){
         case ACTION_FOCUS:
             range->setWindowTitle("Select Focus Range");
             minSlider->setValue(currentDim->getCurrentMin());
+            currentMin->setText(QString::number(currentDim->getCurrentMin()));
             maxSlider->setValue(currentDim->getCurrentMax());
+            currentMax->setText(QString::number(currentDim->getCurrentMax()));
             break;
         default:
             break;

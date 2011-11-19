@@ -80,17 +80,17 @@
      <string>00001</string>
     </property>
    </widget>
-   <widget class="QLabel" name="currentMinValue">
+   <widget class="QLineEdit" name="currentMinValue">
     <property name="geometry">
      <rect>
-      <x>565</x>
+      <x>510</x>
       <y>10</y>
-      <width>61</width>
+      <width>113</width>
       <height>20</height>
      </rect>
     </property>
-    <property name="text">
-     <string>64964368</string>
+    <property name="inputMethodHints">
+     <set>Qt::ImhDigitsOnly</set>
     </property>
    </widget>
   </widget>
@@ -145,17 +145,17 @@
      <string>00001</string>
     </property>
    </widget>
-   <widget class="QLabel" name="currentMaxValue">
+   <widget class="QLineEdit" name="currentMaxValue">
     <property name="geometry">
      <rect>
-      <x>565</x>
+      <x>510</x>
       <y>10</y>
-      <width>61</width>
+      <width>113</width>
       <height>20</height>
      </rect>
     </property>
-    <property name="text">
-     <string>64964368</string>
+    <property name="inputMethodHints">
+     <set>Qt::ImhDigitsOnly</set>
     </property>
    </widget>
   </widget>

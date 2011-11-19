@@ -27,7 +27,7 @@ class Dimension
 
         Dimension(int id, QString title, bool vis, Equation *eq);
 
-        double getValue(int mode, double value);
+        virtual double getValue(int mode, double value);
 
         double getCurrentMin();
         double getCurrentMax();
@@ -48,6 +48,7 @@ class Discrete: public Dimension
 
         Discrete(int id, QString title, bool vis, Equation *eq);
 
+        double getValue(int mode, double value);
         void insertNameValue(QString *name);
         int getNameValuesSize();
         QString getNameValueAt(int position);

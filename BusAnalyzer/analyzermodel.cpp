@@ -393,7 +393,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
                 currentValue = tempRecord->alignment;
                 break;
             case 10:
-                tempRecord->fua = (list.at(i).compare(QString('N'))) ? 0 : 1;
+                tempRecord->fua = (list.at(i).compare(QString('N'))) ? 1 : 0;
                 currentValue = tempRecord->fua;
                 break;
             case 11:

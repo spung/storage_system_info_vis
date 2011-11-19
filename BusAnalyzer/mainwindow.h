@@ -47,6 +47,7 @@
 #include <typeinfo>
 #include "range.h"
 #include <QProgressBar>
+#include <QLineEdit>
 
 #define ACTION_BRUSH 0
 #define ACTION_FOCUS 1
@@ -77,6 +78,10 @@ public slots:
 
 private slots:
     //void renderIntoPixmap();
+    void setMinField(int value);
+    void setMaxField(int value);
+    void setMinSlider(QString value);
+    void setMaxSlider(QString value);
     void grabFrameBuffer();
     void clearPixmap();
     void about();
@@ -118,6 +123,11 @@ private:
     QSlider *xSlider;
     QSlider *ySlider;
     QSlider *zSlider;
+
+    QLineEdit *currentMin;
+    QLineEdit *currentMax;
+    QSlider *minSlider;
+    QSlider *maxSlider;
 
     QMenu *fileMenu;
     QMenu *modeMenu;
