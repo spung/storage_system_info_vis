@@ -32,6 +32,10 @@ class Dimension
         double getCurrentMin();
         double getCurrentMax();
         virtual int getNameValuesSize(){return 0;}
+        virtual void incrementCount(int position){}
+        virtual void incrementFocusCount(int position){}
+        virtual int getCount(int position){return -1;}
+        virtual int getFocusCount(int position){return -1;}
 };
 
 class Continuous: public Dimension
@@ -45,10 +49,17 @@ class Discrete: public Dimension
 {
     public:
         QVector<QString> nameValues;
+        QVector<int> count;
+        QVector<int> focusCount;
 
         Discrete(int id, QString title, bool vis, Equation *eq);
 
         double getValue(int mode, double value);
+        void initCount(int numValues);
+        int getCount(int position);
+        int getFocusCount(int position);
+        void incrementCount(int position);
+        void incrementFocusCount(int position);
         void insertNameValue(QString *name);
         int getNameValuesSize();
         QString getNameValueAt(int position);

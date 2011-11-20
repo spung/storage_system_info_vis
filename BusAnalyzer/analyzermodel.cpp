@@ -127,7 +127,7 @@ void AnalyzerModel::setFocus(Dimension*dim, double min, double max){
 
     // initialize each dimension's current max/min
     for(int currentDimPos = 0; currentDimPos < order.size(); currentDimPos++){
-        dimensions.at(currentDimPos)->currentMin =  9999999.9;
+        dimensions.at(currentDimPos)->currentMin =  DBL_MAX;
         dimensions.at(currentDimPos)->currentMax = 0;
     }
 
@@ -141,7 +141,6 @@ void AnalyzerModel::setFocus(Dimension*dim, double min, double max){
                     double currVal = rec->at(currentDimPos);
                     if(currVal < dimensions.at(currentDimPos)->currentMin){
                         dimensions.at(currentDimPos)->currentMin = currVal;
-
                     }
                     if(currVal > dimensions.at(currentDimPos)->currentMax){
                         dimensions.at(currentDimPos)->currentMax = currVal;
@@ -256,12 +255,14 @@ bool AnalyzerModel::loadFile(const QString &fileName){
         case QUEUEABLE:
             discretePointer->insertNameValue(new QString("False"));
             discretePointer->insertNameValue(new QString("True"));
+            discretePointer->initCount(2);
             break;
         case CMD:
             discretePointer->insertNameValue(new QString("-"));
             discretePointer->insertNameValue(new QString("Write"));
             discretePointer->insertNameValue(new QString("Read"));
             discretePointer->insertNameValue(new QString("F"));
+            discretePointer->initCount(4);
             break;
         case ALIGNMENT:
             discretePointer->insertNameValue(new QString("None"));
@@ -272,19 +273,23 @@ bool AnalyzerModel::loadFile(const QString &fileName){
             discretePointer->insertNameValue(new QString("Aligned Fully"));
             discretePointer->insertNameValue(new QString("Aligned Fully Stream"));
             discretePointer->insertNameValue(new QString("Unaligned Fully"));
+            discretePointer->initCount(8);
             break;
         case FUA:
             discretePointer->insertNameValue(new QString("False"));
             discretePointer->insertNameValue(new QString("True"));
+            discretePointer->initCount(2);
             break;
         case SEQUENTIAL:
             discretePointer->insertNameValue(new QString("None"));
             discretePointer->insertNameValue(new QString("Sequential"));
             discretePointer->insertNameValue(new QString("Sequential Stream"));
+            discretePointer->initCount(3);
             break;
         case CACHE_HIT:
             discretePointer->insertNameValue(new QString("Miss"));
             discretePointer->insertNameValue(new QString("Hit"));
+            discretePointer->initCount(2);
             break;
         default:
             if(i == INTER_CMD_TIME || i == CCT || i == QUEUE_CCT || i == FIFO_POS ){
@@ -297,7 +302,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
         }
         dimensions.append(newDim);
 
-        dimensions.at(i)->min = 9999999.9;
+        dimensions.at(i)->min = DBL_MAX;
         dimensions.at(i)->max = 0;
         order.append(i);
     }
@@ -341,6 +346,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
             case 4:
                 tempRecord->queueable = (list.at(i).compare(QString('q')) == 0) ? 1 : 0;
                 currentValue = tempRecord->queueable;
+                dimensions.at(4)->incrementCount(currentValue);
                 //qDebug() << QString("value: %1, compare to: %2, equals: %3, queueable: %4").arg(list.at(i)).arg(QString('q')).arg(QString::number(list.at(i).compare(QString('q')))).arg(QString::number(tempRecord->queueable));
                 break;
             case 5:
@@ -360,6 +366,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
                     tempRecord->cmd = COMMAND_NONE;
                 }
                 currentValue = tempRecord->cmd;
+                dimensions.at(5)->incrementCount(currentValue);
                 break;
             case 6:
                 tempRecord->interCmdTime = list.at(i).toDouble();
@@ -391,10 +398,12 @@ bool AnalyzerModel::loadFile(const QString &fileName){
                     if(list.at(i).length()) qDebug() << "***alignment ERROR READING IN!! ** " + list.at(i);
                 }
                 currentValue = tempRecord->alignment;
+                dimensions.at(9)->incrementCount(currentValue);
                 break;
             case 10:
                 tempRecord->fua = (list.at(i).compare(QString('N'))) ? 1 : 0;
                 currentValue = tempRecord->fua;
+                dimensions.at(10)->incrementCount(currentValue);
                 break;
             case 11:
                 tempRecord->cct = list.at(i).toDouble();
@@ -422,6 +431,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
                     //if(list.at(i).length()) qDebug() << "***sequential ERROR READING IN!! ** " + list.at(i);
                 }
                 currentValue = tempRecord->sequential;
+                dimensions.at(16)->incrementCount(currentValue);
                 break;
             case 17:
                 tempRecord->streamNum = list.at(i).toLong();
@@ -429,6 +439,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
             case 18:
                 tempRecord->cacheHit = (list.at(i).length() > 1) ? 1 : 0;
                 currentValue = tempRecord->cacheHit;
+                dimensions.at(18)->incrementCount(currentValue);
                 break;
             default:
                 break;

@@ -149,6 +149,8 @@ void GLObject::paintGL(){
                     }
                     else
                         this->renderText(drawX1, -p2w_y(i*1.0/(values-1) * this->height()), 0.01, currentDiscrete->getNameValueAt(i));
+
+                    qDebug()<<QString("Dimension: %1 value: %2 count: %3").arg(currentDimPos).arg(i).arg(currentDiscrete->getCount(i));
                 }
             }
             else{

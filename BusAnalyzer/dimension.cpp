@@ -25,7 +25,6 @@ double Dimension::getCurrentMax(){
     return currentMax;
 }
 
-
 Discrete::Discrete(int id, QString title, bool vis, Equation *eq) : Dimension(id, title, vis, eq){
     this->id = id;
     this->title = title;
@@ -43,6 +42,31 @@ int Discrete::getNameValuesSize(){
 
 QString Discrete::getNameValueAt(int position){
     return nameValues.at(position);
+}
+
+void Discrete::initCount(int numValues){
+    for(int i = 0; i < numValues; i++){
+        count.append(0);
+        focusCount.append(0);
+    }
+}
+
+int Discrete::getCount(int position){
+    return count.at(position);
+}
+
+int Discrete::getFocusCount(int position){
+    return focusCount.at(position);
+}
+
+void Discrete::incrementCount(int position){
+    int current = count.at(position);
+    count.replace(position, current + 1);
+}
+
+void Discrete::incrementFocusCount(int position){
+    int current = focusCount.at(position);
+    focusCount.replace(position, current + 1);
 }
 
 double Discrete::getValue(int mode, double value){

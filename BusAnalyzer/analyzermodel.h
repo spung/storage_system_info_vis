@@ -12,6 +12,7 @@
 #include <iostream>
 #include <QDebug>
 #include <QMessageBox>
+#include <float.h>
 
 #define MODE_OVERVIEW           0
 #define MODE_FOCUS              1
