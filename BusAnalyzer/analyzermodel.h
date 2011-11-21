@@ -59,6 +59,8 @@ public:
     double getBrushMin();
     double getFocusMax();
     double getFocusMin();
+    double getHistogramValue(int id, int position);
+    void resetFocusCounts();
 
     QString error;
     QVector<Record*> records;
@@ -71,6 +73,7 @@ public:
     Dimension* brush_dimension;
     double focus_min, focus_max, brush_min, brush_max;
     bool colorThreads;
+    int focusCount;
 };
 
 #endif // ANALYZERMODEL_H

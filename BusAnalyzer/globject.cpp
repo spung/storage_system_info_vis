@@ -156,14 +156,30 @@ void GLObject::paintGL(){
             if(values != 0){
                 Discrete *currentDiscrete = dynamic_cast<Discrete*>(currentDim);
                 for(int i = 0; i<values; i++){
+                    /* color labels
+                    glColor4f(0.0, 1.0, 0.0, 0.15);
+                    float labelY = 0.03;
+                    glBegin(GL_QUADS);
+                        glVertex3f(drawX1 - 0.01, -p2w_y(i*1.0/(values-1) * this->height()) + labelY, 0.01);
+                        glVertex3f(drawX1 - 0.01, -p2w_y(i*1.0/(values-1) * this->height()) - labelY+0.01, 0.01);
+                        glVertex3f(drawX1 + 0.20, -p2w_y(i*1.0/(values-1) * this->height()) - labelY+0.01, 0.01);
+                        glVertex3f(drawX1 + 0.20, -p2w_y(i*1.0/(values-1) * this->height()) + labelY, 0.01);
+                    glEnd();
+
+                    glColor4f(0.0, 0.0, 0.0, 1.0);
+                    */
+
                     if(i == 0){
                         this->renderText(drawX1, minPosition, 0.01, currentDiscrete->getNameValueAt(i));
                     }
                     else
                         this->renderText(drawX1, -p2w_y(i*1.0/(values-1) * this->height()), 0.01, currentDiscrete->getNameValueAt(i));
 
-                    qDebug()<<QString("Dimension: %1 value: %2 count: %3").arg(currentDimPos).arg(i).arg(currentDiscrete->getCount(i));
-                    float histogramWidth =  fabs(p2w_x(horizontalInc) - p2w_x(horizontalInc*2)) * currentDiscrete->getCount(i)/model->records.size();
+                    // draw histogram
+                    double histValue = model->getHistogramValue(currentDiscrete->id, i);
+
+                    float histogramWidth =  fabs(p2w_x(horizontalInc) - p2w_x(horizontalInc*2)) * histValue;
+                    qDebug() << QString("here::: %1").arg(histValue);
                     //qDebug() << QString("horizInc: %1 count: %2 total_recs: %3 count/total_rec: %4 horizInc*count/total_rec: %5").arg(drawX1).arg(currentDiscrete->getCount(i)).arg(model->records.size()).arg(1.0*currentDiscrete->getCount(i)/model->records.size()).arg(histogramWidth);
                     glColor4f(1.0, 0.0, 0.0, 0.15);
                     circle(drawX1 + 0.05, -p2w_y(i*1.0/(values-1) * this->height()), histogramWidth/2, 36);

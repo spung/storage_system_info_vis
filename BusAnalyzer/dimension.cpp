@@ -32,6 +32,12 @@ Discrete::Discrete(int id, QString title, bool vis, Equation *eq) : Dimension(id
     this->scaleEq = eq;
 }
 
+void Discrete::resetFocusCounts(){
+    for(int i=0; i<focusCount.size(); i++){
+        focusCount.replace(i, 0);
+    }
+}
+
 void Discrete::insertNameValue(QString *name){
     nameValues.append(*name);
 }

@@ -36,6 +36,7 @@ class Dimension
         virtual void incrementFocusCount(int position){}
         virtual int getCount(int position){return -1;}
         virtual int getFocusCount(int position){return -1;}
+        virtual void resetFocusCounts(){}
 };
 
 class Continuous: public Dimension
@@ -58,6 +59,7 @@ class Discrete: public Dimension
         void initCount(int numValues);
         int getCount(int position);
         int getFocusCount(int position);
+        void resetFocusCounts();
         void incrementCount(int position);
         void incrementFocusCount(int position);
         void insertNameValue(QString *name);

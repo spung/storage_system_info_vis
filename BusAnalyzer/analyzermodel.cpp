@@ -14,7 +14,7 @@ bool AnalyzerModel::inFocus(Record*rec){
 }
 
 bool AnalyzerModel::isEnumDim(int dim){
-    if(dim == QUEUEABLE || dim == CMD || dim == ALIGNMENT || dim == FIFO_POS || dim == STREAM_NUM || dim == CACHE_HIT){
+    if(dim == QUEUEABLE || dim == CMD || dim == ALIGNMENT || dim == FUA || dim == SEQUENTIAL || dim == FIFO_POS || dim == STREAM_NUM || dim == CACHE_HIT){
         return true;
     }
     else{
@@ -22,10 +22,30 @@ bool AnalyzerModel::isEnumDim(int dim){
     }
 }
 
+double AnalyzerModel::getHistogramValue(int id, int position){
+    if(mode == MODE_FOCUS){
+        qDebug()<<QString("Focus Dimension: %1 value: %2 count: %3").arg(id).arg(position).arg(1.0*dimensions.at(id)->getFocusCount(position)/focusCount);
+        return 1.0*dimensions.at(id)->getFocusCount(position)/focusCount;
+    }
+    else {
+        qDebug()<<QString("Overview Dimension: %1 value: %2 count: %3").arg(id).arg(position).arg(1.0*dimensions.at(id)->getFocusCount(position)/records.size());
+        return 1.0*dimensions.at(id)->getCount(position)/records.size();
+    }
+}
+
 typedef struct {
   int timeToLive;
   QColor color;
 } Thread;
+
+void AnalyzerModel::resetFocusCounts(){
+    dimensions.at(QUEUEABLE)->resetFocusCounts();
+    dimensions.at(CMD)->resetFocusCounts();
+    dimensions.at(ALIGNMENT)->resetFocusCounts();
+    dimensions.at(FUA)->resetFocusCounts();
+    dimensions.at(SEQUENTIAL)->resetFocusCounts();
+    dimensions.at(CACHE_HIT)->resetFocusCounts();
+}
 
 void AnalyzerModel::generateColorThreads(){
     QMap<int, Thread> liveThreads;
@@ -125,6 +145,9 @@ void AnalyzerModel::setFocus(Dimension*dim, double min, double max){
     this->focus_max = max;
     this->mode = MODE_FOCUS;
 
+    resetFocusCounts();
+    focusCount = 0;
+
     // initialize each dimension's current max/min
     for(int currentDimPos = 0; currentDimPos < order.size(); currentDimPos++){
         dimensions.at(currentDimPos)->currentMin =  DBL_MAX;
@@ -134,6 +157,8 @@ void AnalyzerModel::setFocus(Dimension*dim, double min, double max){
     foreach(Record *rec, records){
         // go through each record in the user selected focus
         if(inFocus(rec)){
+            focusCount++;
+
             // calculate new currentMin/currentMax for each dimension
             for(int currentDimPos = 0; currentDimPos < order.size(); currentDimPos++){
                 // ignore the dimensions that are enum type dimensions
@@ -149,6 +174,7 @@ void AnalyzerModel::setFocus(Dimension*dim, double min, double max){
                 else{
                     dimensions.at(currentDimPos)->currentMin = dimensions.at(currentDimPos)->min;
                     dimensions.at(currentDimPos)->currentMax = dimensions.at(currentDimPos)->max;
+                    dimensions.at(currentDimPos)->incrementFocusCount(rec->at(currentDimPos));
                 }
             }
         }
@@ -456,12 +482,11 @@ bool AnalyzerModel::loadFile(const QString &fileName){
 
     for(int i = 0; i<count;i++){
         dimensions.at(i)->difference = dimensions.at(i)->max - dimensions.at(i)->min;
-//        if(dimensions.at(i)->max == dimensions.at(i)->min){
-//            qDebug() << "trying to remove";
-//            order.remove(i);
-//            qDebug() << "successfully removed";
-//            dimensions.at(i)->visible = false;
-//        }
+        if(!isEnumDim(i) && dimensions.at(i)->max == dimensions.at(i)->min){
+            dimensions.at(i)->max = 1.0;
+            //order.remove(i);
+            //dimensions.at(i)->visible = false;
+        }
         dimensions.at(i)->currentMin = dimensions.at(i)->min;
         dimensions.at(i)->currentMax = dimensions.at(i)->max;
 //        qDebug() << QString("dimension: %1, min: %2, max: %3").arg(QString::number(i)).arg(QString::number(dimensions.at(i)->min)).arg(QString::number(dimensions.at(i)->max));
