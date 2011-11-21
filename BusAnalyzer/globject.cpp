@@ -90,6 +90,17 @@ void GLObject::resizeGL(int width, int height){
     glLoadIdentity(); //reset modelview matrix
 }
 
+void circle(float x, float y, float r, int segments)
+{
+    glBegin( GL_TRIANGLE_FAN );
+        glVertex2f(x, y);
+        for( int n = 0; n <= segments; ++n ) {
+            float const t = 2*M_PI*(float)n/(float)segments;
+            glVertex2f(x + sin(t)*r, y + cos(t)*r);
+        }
+    glEnd();
+}
+
 // openGL painting code goes here
 void GLObject::paintGL(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen and depth buffer
@@ -124,6 +135,7 @@ void GLObject::paintGL(){
         float worldHeight = -p2w_y(this->height());
         for(int currentDimPos = 0; currentDimPos < orderCount;currentDimPos++){
             drawX1 = p2w_x(horizontalInc * currentDimPos);
+            //qDebug()<< QString("axis: %1 drawX1: %2").arg(currentDimPos).arg(drawX1);
             //qDebug()<< QString("current: %1  horizontal incr: %2  position: %3").arg(QString::number(model->order.at(currentDimPos))).arg(QString::number(p2w_x(horizontalInc))).arg(QString::number(drawX1));
             glColor4f(0.0, 0.0, 0.0, 0.15); // set color
             glBegin(GL_QUADS);
@@ -151,6 +163,19 @@ void GLObject::paintGL(){
                         this->renderText(drawX1, -p2w_y(i*1.0/(values-1) * this->height()), 0.01, currentDiscrete->getNameValueAt(i));
 
                     qDebug()<<QString("Dimension: %1 value: %2 count: %3").arg(currentDimPos).arg(i).arg(currentDiscrete->getCount(i));
+                    float histogramWidth =  fabs(p2w_x(horizontalInc) - p2w_x(horizontalInc*2)) * currentDiscrete->getCount(i)/model->records.size();
+                    //qDebug() << QString("horizInc: %1 count: %2 total_recs: %3 count/total_rec: %4 horizInc*count/total_rec: %5").arg(drawX1).arg(currentDiscrete->getCount(i)).arg(model->records.size()).arg(1.0*currentDiscrete->getCount(i)/model->records.size()).arg(histogramWidth);
+                    glColor4f(1.0, 0.0, 0.0, 0.15);
+                    circle(drawX1 + 0.05, -p2w_y(i*1.0/(values-1) * this->height()), histogramWidth/2, 36);
+                    /*
+                      squares
+                    glBegin(GL_QUADS);
+                        glVertex3f(drawX1 + 0.05- histogramWidth/2, -p2w_y(i*1.0/(values-1) * this->height()) + histogramHeight, 0.01);
+                        glVertex3f(drawX1 + 0.05- histogramWidth/2, -p2w_y(i*1.0/(values-1) * this->height()) - histogramHeight, 0.01);
+                        glVertex3f(drawX1 + 0.05+ histogramWidth/2, -p2w_y(i*1.0/(values-1) * this->height()) - histogramHeight, 0.01);
+                        glVertex3f(drawX1 + 0.05+ histogramWidth/2, -p2w_y(i*1.0/(values-1) * this->height()) + histogramHeight, 0.01);
+                    glEnd();*/
+                    glColor4f(1.0, 0.0, 0.0, 1.0);
                 }
             }
             else{
