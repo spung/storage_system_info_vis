@@ -111,6 +111,11 @@ void GLObject::paintGL(){
 //        glVertex3f( 1.80f,  -1.0f, 0.0f); // Top Right
 //    glEnd();
 
+    double smallVal = 0.000000000001;
+    double labelZVal = -1.0*smallVal;
+    double recordZVal = 0.0;
+    double axesZVal = smallVal;
+
     if(model){
         double xVal1, yVal1, xVal2, yVal2, drawX1, drawX2, drawY1, drawY2, top, right = 0;
         float axisWidth = 0.005;
@@ -122,7 +127,7 @@ void GLObject::paintGL(){
 
         glPushMatrix();
 //        qDebug()<<QString("xTrans: %1, yTrans: %2").arg(xTranslate).arg(yTranslate);
-        glTranslatef(0.0f + p2w_x(xTranslate), 0.0f - p2w_y(yTranslate), -2.5f + 2.0*scaleVal); // Move 2.5 into the screen
+        glTranslatef(p2w_x(xTranslate), - p2w_y(yTranslate), -2.5f + 2.0*scaleVal); // Move 2.5 into the screen
 
         // draw axes
         drawY1 = -p2w_y(0.0 * this->height());
@@ -139,17 +144,17 @@ void GLObject::paintGL(){
             //qDebug()<< QString("current: %1  horizontal incr: %2  position: %3").arg(QString::number(model->order.at(currentDimPos))).arg(QString::number(p2w_x(horizontalInc))).arg(QString::number(drawX1));
             glColor4f(0.0, 0.0, 0.0, 0.15); // set color
             glBegin(GL_QUADS);
-                glVertex3f(drawX1 - axisWidth, drawY1, 0.01);
-                glVertex3f(drawX1 - axisWidth, drawY2, 0.01);
-                glVertex3f(drawX1 + axisWidth, drawY2, 0.01);
-                glVertex3f(drawX1 + axisWidth, drawY1, 0.01);
+                glVertex3f(drawX1 - axisWidth, drawY1, axesZVal);
+                glVertex3f(drawX1 - axisWidth, drawY2, axesZVal);
+                glVertex3f(drawX1 + axisWidth, drawY2, axesZVal);
+                glVertex3f(drawX1 + axisWidth, drawY1, axesZVal);
             glEnd();
 
             glColor3f(0.0, 0.0, 0.0);
             drawX1 -= 0.05;
             //this->renderText(drawX1, p2w_y(this->height()), 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
-            this->renderText(drawX1, drawY1 + 0.01, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
-            //this->renderText(drawX1, drawY1 - 0.01 + p2w_y(yTranslate), 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
+            //this->renderText(drawX1, drawY1 + 0.01, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
+            this->renderText(drawX1, drawY1 - 0.002 + p2w_y(yTranslate) - 0.8*scaleVal, labelZVal, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
 
             glColor3f(1.0, 0.0, 0.0);
 
@@ -170,12 +175,11 @@ void GLObject::paintGL(){
 
                     glColor4f(0.0, 0.0, 0.0, 1.0);
                     */
-
                     if(i == 0){
-                        this->renderText(drawX1, minPosition, 0.01, currentDiscrete->getNameValueAt(i));
+                        this->renderText(drawX1, minPosition, labelZVal, currentDiscrete->getNameValueAt(i));
                     }
                     else
-                        this->renderText(drawX1, -p2w_y(i*1.0/(values-1) * this->height()), 0.01, currentDiscrete->getNameValueAt(i));
+                        this->renderText(drawX1, -p2w_y(i*1.0/(values-1) * this->height()), labelZVal, currentDiscrete->getNameValueAt(i));
 
                     // draw histogram
                     double histValue = model->getHistogramValue(currentDiscrete->id, i);
@@ -208,63 +212,14 @@ void GLObject::paintGL(){
                 }
 
                 if(currentDimPos == 0){
-                    this->renderText(drawX1 - axisWidth, minPosition, 0.01, QString("%1").arg(tempMin, 0, 'g', 6));
-                    this->renderText(drawX1 - axisWidth, maxPosition, 0.01, QString("%1").arg(tempMax, 0, 'g', 6));
+                    this->renderText(drawX1 - axisWidth, minPosition, labelZVal, QString("%1").arg(tempMin, 0, 'g', 6));
+                    this->renderText(drawX1 - axisWidth, maxPosition, labelZVal, QString("%1").arg(tempMax, 0, 'g', 6));
                 }
                 else{
-                    this->renderText(drawX1, minPosition, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMin, 0, 'g', 6));
-                    this->renderText(drawX1, maxPosition, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMax, 0, 'g', 6));
+                    this->renderText(drawX1, minPosition, labelZVal, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMin, 0, 'g', 6));
+                    this->renderText(drawX1, maxPosition, labelZVal, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMax, 0, 'g', 6));
                 }
             }
-/*
-            switch(model->order.at(currentDimPos)){
-            case 5:
-                this->renderText(drawX1, minPosition, 0.01, "None");
-                this->renderText(drawX1, -p2w_y(1.0/3.0 * this->height()), 0.01, "Write");
-                this->renderText(drawX1, -p2w_y(2.0/3.0 * this->height()), 0.01, "Read");
-                this->renderText(drawX1, maxPosition, 0.01, "F");
-            break;
-            case 9:
-                this->renderText(drawX1, minPosition, 0.01, "None");
-                this->renderText(drawX1, -p2w_y(1/7.0 * this->height()), 0.01, "End");
-                this->renderText(drawX1, -p2w_y(2/7.0 * this->height()), 0.01, "End Stream");
-                this->renderText(drawX1, -p2w_y(3/7.0 * this->height()), 0.01, "Start");
-                this->renderText(drawX1, -p2w_y(4/7.0 * this->height()), 0.01, "Start Stream");
-                this->renderText(drawX1, -p2w_y(5/7.0 * this->height()), 0.01, "Fully");
-                this->renderText(drawX1, -p2w_y(6/7.0 * this->height()), 0.01, "Fully Stream");
-                this->renderText(drawX1, maxPosition, 0.01, "Fully Unaligned");
-            break;
-            case 16:
-                this->renderText(drawX1, minPosition, 0.01, "None");
-                this->renderText(drawX1, -p2w_y(1/2.0 * this->height()), 0.01, "Seq");
-                this->renderText(drawX1, maxPosition, 0.01, "Seq Stream");
-            break;
-            case 18:
-                this->renderText(drawX1, minPosition, 0.01, "Miss");
-                this->renderText(drawX1, maxPosition, 0.01, "Hit");
-            break;
-            default:
-                double tempMin, tempMax;
-                if(model->mode == MODE_OVERVIEW){
-                    tempMin = model->dimensions.at(model->order.at(currentDimPos))->min;
-                    tempMax = model->dimensions.at(model->order.at(currentDimPos))->max;
-                }
-                else if(model->mode == MODE_FOCUS){
-                    tempMin = model->dimensions.at(model->order.at(currentDimPos))->currentMin;
-                    tempMax = model->dimensions.at(model->order.at(currentDimPos))->currentMax;
-                }
-
-                if(currentDimPos == 0){
-                    this->renderText(drawX1 - axisWidth, minPosition, 0.01, QString("%1").arg(tempMin, 0, 'g', 6));
-                    this->renderText(drawX1 - axisWidth, maxPosition, 0.01, QString("%1").arg(tempMax, 0, 'g', 6));
-                }
-                else{
-                    this->renderText(drawX1, minPosition, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMin, 0, 'g', 6));
-                    this->renderText(drawX1, maxPosition, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->currentMax, 0, 'g', 6));
-                }
-
-            break;
-            }*/
         }
 
         // draw records
@@ -307,8 +262,8 @@ void GLObject::paintGL(){
                         glBegin(GL_LINES);
                             //glColor3f(1.0f, 0.0f, 0.0f); // Red color
                             //qDebug() << QString("drawing: %1, %2 to %3, %4").arg(drawX1).arg(drawY1).arg(drawX2).arg(drawY2);
-                            glVertex3f(drawX1, drawY1, 0.01);
-                            glVertex3f(drawX2, drawY2, 0.01);
+                            glVertex3f(drawX1, drawY1, recordZVal);
+                            glVertex3f(drawX2, drawY2, recordZVal);
                         glEnd();
 
                         if(currentDimPos == 5){
