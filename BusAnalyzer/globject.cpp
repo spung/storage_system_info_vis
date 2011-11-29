@@ -154,7 +154,7 @@ void GLObject::paintGL(){
             drawX1 -= 0.05;
             //this->renderText(drawX1, p2w_y(this->height()), 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
             //this->renderText(drawX1, drawY1 + 0.01, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
-            this->renderText(drawX1, drawY1 - 0.002 + p2w_y(yTranslate) - 0.8*scaleVal, labelZVal, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
+            this->renderText(drawX1, drawY1 + 0.003 + p2w_y(yTranslate) - 0.8*scaleVal, labelZVal, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
 
             glColor3f(1.0, 0.0, 0.0);
 
