@@ -154,7 +154,7 @@ void GLObject::paintGL(){
             drawX1 -= 0.05;
             //this->renderText(drawX1, p2w_y(this->height()), 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
             //this->renderText(drawX1, drawY1 + 0.01, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
-            this->renderText(drawX1, drawY1 + 0.003 + p2w_y(yTranslate) - 0.8*scaleVal, labelZVal, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
+            this->renderText(drawX1, drawY1 + 0.002 + p2w_y(yTranslate) - 0.8*scaleVal, labelZVal, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
 
             glColor3f(1.0, 0.0, 0.0);
 
@@ -185,7 +185,7 @@ void GLObject::paintGL(){
                     double histValue = model->getHistogramValue(currentDiscrete->id, i);
 
                     float histogramWidth =  fabs(p2w_x(horizontalInc) - p2w_x(horizontalInc*2)) * histValue;
-                    qDebug() << QString("here::: %1").arg(histValue);
+                    //qDebug() << QString("here::: %1").arg(histValue);
                     //qDebug() << QString("horizInc: %1 count: %2 total_recs: %3 count/total_rec: %4 horizInc*count/total_rec: %5").arg(drawX1).arg(currentDiscrete->getCount(i)).arg(model->records.size()).arg(1.0*currentDiscrete->getCount(i)/model->records.size()).arg(histogramWidth);
                     glColor4f(1.0, 0.0, 0.0, 0.15);
                     circle(drawX1 + 0.05, -p2w_y(i*1.0/(values-1) * this->height()), histogramWidth/2, 36);

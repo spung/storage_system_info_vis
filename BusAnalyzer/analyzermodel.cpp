@@ -24,11 +24,11 @@ bool AnalyzerModel::isEnumDim(int dim){
 
 double AnalyzerModel::getHistogramValue(int id, int position){
     if(mode == MODE_FOCUS){
-        qDebug()<<QString("Focus Dimension: %1 value: %2 count: %3").arg(id).arg(position).arg(1.0*dimensions.at(id)->getFocusCount(position)/focusCount);
+        //qDebug()<<QString("Focus Dimension: %1 value: %2 count: %3").arg(id).arg(position).arg(1.0*dimensions.at(id)->getFocusCount(position)/focusCount);
         return 1.0*dimensions.at(id)->getFocusCount(position)/focusCount;
     }
     else {
-        qDebug()<<QString("Overview Dimension: %1 value: %2 count: %3").arg(id).arg(position).arg(1.0*dimensions.at(id)->getFocusCount(position)/records.size());
+        //qDebug()<<QString("Overview Dimension: %1 value: %2 count: %3").arg(id).arg(position).arg(1.0*dimensions.at(id)->getFocusCount(position)/records.size());
         return 1.0*dimensions.at(id)->getCount(position)/records.size();
     }
 }

@@ -240,20 +240,17 @@ void MainWindow::getRange(short action){
     connect( maxSlider, SIGNAL(sliderMoved(int)), this, SLOT(setMaxField(int)) );
     connect(currentMax, SIGNAL(textChanged(QString)), this, SLOT(setMaxSlider(QString)));
 
+    minSlider->setValue(currentDim->getCurrentMin());
+    currentMin->setText(QString::number(currentDim->getCurrentMin()));
+    maxSlider->setValue(currentDim->getCurrentMax());
+    currentMax->setText(QString::number(currentDim->getCurrentMax()));
+
     switch(action){
         case ACTION_BRUSH:
             range->setWindowTitle("Select Brush Range");
-            if(model->getBrushDimension()->id == model->order.at(sectionClicked/2)){
-                minSlider->setValue(model->getBrushMin());
-                maxSlider->setValue(model->getBrushMax());
-            }
             break;
         case ACTION_FOCUS:
-            range->setWindowTitle("Select Focus Range");
-            minSlider->setValue(currentDim->getCurrentMin());
-            currentMin->setText(QString::number(currentDim->getCurrentMin()));
-            maxSlider->setValue(currentDim->getCurrentMax());
-            currentMax->setText(QString::number(currentDim->getCurrentMax()));
+            range->setWindowTitle("Select Focus Range");            
             break;
         default:
             break;
