@@ -133,7 +133,6 @@ private:
     QMenu *modeMenu;
     QMenu *helpMenu;
     QAction *grabFrameBufferAct;
-    //QAction *renderIntoPixmapAct;
     QAction *clearPixmapAct;
     QAction *exitAct;
     QAction *overviewModeAct;
