@@ -5,6 +5,7 @@ AnalyzerModel::AnalyzerModel()
     mode = MODE_OVERVIEW;
 }
 
+// returns true if the record is within the current focus
 bool AnalyzerModel::inFocus(Record*rec){
     double value = rec->at(focus_dimension->id);
     if(value >= focus_min && value <= focus_max)
@@ -13,6 +14,7 @@ bool AnalyzerModel::inFocus(Record*rec){
         return false;
 }
 
+// returns true if the dimension is discrete, false if continuous
 bool AnalyzerModel::isEnumDim(int dim){
     if(dim == QUEUEABLE || dim == CMD || dim == ALIGNMENT || dim == FUA || dim == SEQUENTIAL || dim == FIFO_POS || dim == STREAM_NUM || dim == CACHE_HIT){
         return true;
@@ -22,22 +24,29 @@ bool AnalyzerModel::isEnumDim(int dim){
     }
 }
 
+// returns the histogram value of the dimension id and position
 double AnalyzerModel::getHistogramValue(int id, int position){
+
+    // histogram values take into account the mode, applying a focus will appropriately
+    //  filter out values from the histogram
     if(mode == MODE_FOCUS){
-        //qDebug()<<QString("Focus Dimension: %1 value: %2 count: %3").arg(id).arg(position).arg(1.0*dimensions.at(id)->getFocusCount(position)/focusCount);
         return 1.0*dimensions.at(id)->getFocusCount(position)/focusCount;
     }
     else {
-        //qDebug()<<QString("Overview Dimension: %1 value: %2 count: %3").arg(id).arg(position).arg(1.0*dimensions.at(id)->getFocusCount(position)/records.size());
         return 1.0*dimensions.at(id)->getCount(position)/records.size();
     }
 }
 
+// struct used for identifying colors and asigning a color
 typedef struct {
+  // the number of records before this thread is evicted from the queue
   int timeToLive;
+
+  // the unique color assigned to this particular thread
   QColor color;
 } Thread;
 
+// reset the focus counts on each of the discrete axes
 void AnalyzerModel::resetFocusCounts(){
     dimensions.at(QUEUEABLE)->resetFocusCounts();
     dimensions.at(CMD)->resetFocusCounts();
@@ -47,31 +56,47 @@ void AnalyzerModel::resetFocusCounts(){
     dimensions.at(CACHE_HIT)->resetFocusCounts();
 }
 
+// identify and assign unique colors to each of the threads
 void AnalyzerModel::generateColorThreads(){
+
+    // a hashmap containing current threads we've identified
     QMap<int, Thread> liveThreads;
+
+    // the LBA of the current record
     long currentThread;
+
+    // count of the threads we've identified
     long threadCount = 0;
+
+    // temporary thread which will be inserted into liveThreads
     Thread insertThread;
+
+    // whether we've identified a new thread
     bool newThread = false;
 
-    // get the largest queue value of this dataset
+    // get the largest queue value of this dataset, the default time to live value
     int reach = dimensions.at(QUEUE_DEPTH)->max;
 
-    // set seed to 1 so the colors are always the same for this dataset
+    // set seed to 1 so the colors are always the same for multiple runs of the same dataset
     srand(1);
 
+    // lbaDelta is currently defaulted to 1000 block addresses. This will be future work,
+    //  allowing the user to specify the lbaDelta either during app startup or dynamically
+    //  during the visualization
     int lbaDelta = 1000;
 
     // go through each record
     foreach(Record *rec, records){
         // identify threads
 
-        // get LBA value
+        // get the LBA value
         currentThread = rec->at(LBA);
 
         // if the thread is present, set this rec to that color
         QMapIterator<int, Thread> iter(liveThreads);
 
+        // we can't simply lookup in the hash table whether the LBA value is in liveThreads because we have to check if it's within the
+        //  lbaDelta threshold.
         while(iter.hasNext() && !(currentThread >= iter.peekNext().key() - lbaDelta && currentThread <= iter.peekNext().key() + lbaDelta)){
             iter.next();
         }
@@ -80,6 +105,8 @@ void AnalyzerModel::generateColorThreads(){
         if(currentThread >= iter.peekNext().key() - lbaDelta && currentThread <= iter.peekNext().key() + lbaDelta){
             newThread = false;
             rec->color = iter.peekNext().value().color;
+
+            // remove the thread form liveThreads and insert a new one based on the lbaValue observed in the current record
             insertThread.color = rec->color;
             liveThreads.remove(iter.peekNext().key());
         }
@@ -88,28 +115,12 @@ void AnalyzerModel::generateColorThreads(){
             newThread = true;
             threadCount++;
 
-            qDebug() << QString("thread: %1").arg(QString::number(threadCount));
-
-            // set the color of this thread to the next random color
+            // set the hue of this thread to the next random number from 0-359, keep saturation and brightness at 255 to
+            //  maintain the same color "vibrancy"
             QColor col = QColor::fromHsv(rand() % 360, 255, 255, 255);
             insertThread.color = col;
             rec->color = insertThread.color;
         }
-
-//        if(liveThreads.contains(currentThread)){
-//            insertThread = liveThreads.value(currentThread);
-//            rec->color = insertThread.color;
-//            liveThreads.remove(currentThread);
-//        }
-//        // else insert the new thread into liveThreads
-//        else{
-//            threadCount++;
-
-//            // set the color of this thread to the next random color
-//            QColor col = QColor::fromHsv(rand() % 360, 255, 255, 255);
-//            insertThread.color = col;
-//            rec->color = insertThread.color;
-//        }
 
         // reset time to live for this thread
         insertThread.timeToLive = reach;
@@ -118,7 +129,7 @@ void AnalyzerModel::generateColorThreads(){
         liveThreads.insert(currentThread, insertThread);
 
         if(newThread){
-            // decrement all other live threads
+            // decrement all other live threads' timeToLive
             iter.toFront();
             while(iter.hasNext()){
                 if(iter.peekNext().key() != currentThread){
@@ -136,9 +147,12 @@ void AnalyzerModel::generateColorThreads(){
             }
         }
     }
+
+    // report how many threads were identified
     qDebug() << QString("total threads: %1").arg(QString::number(threadCount));
 }
 
+// set a focus on the model with a dimension, min, and max range
 void AnalyzerModel::setFocus(Dimension*dim, double min, double max){
     this->focus_dimension = dim;
     this->focus_min = min;
@@ -181,11 +195,14 @@ void AnalyzerModel::setFocus(Dimension*dim, double min, double max){
     }
 }
 
+// set brushing on the model with a dimension, min, and max range
 void AnalyzerModel::setBrushCriteria(int dimension, double min, double max){
     Dimension *tempDim = dimensions.at(dimension);
     this->brush_dimension = tempDim;
     brush_min = min;
     brush_max = max;
+
+    // set the brushed flag for each record within the selected range
     foreach(Record *rec, records){
         if(rec->at(dimension) >= min && rec->at(dimension) <= max ){
             rec->brushed = true;
@@ -195,36 +212,44 @@ void AnalyzerModel::setBrushCriteria(int dimension, double min, double max){
     }
 }
 
+// returns the current set brush min
 double AnalyzerModel::getBrushMin(){
     return brush_min;
 }
 
+// returns the current set brush max
 double AnalyzerModel::getBrushMax(){
     return brush_max;
 }
 
+// returns the current set focus min
 double AnalyzerModel::getFocusMax(){
     return focus_max;
 }
 
+// returns the current set focus max
 double AnalyzerModel::getFocusMin(){
     return focus_min;
 }
 
+// returns a pointer to the current set brush dimension
 Dimension* AnalyzerModel::getBrushDimension(){
     return brush_dimension;
 }
 
+// returns a pointer to the current set focus dimension
 Dimension* AnalyzerModel::getFocusDimension(){
     return focus_dimension;
 }
 
+// prints each record for debugging purposes
 void AnalyzerModel::printRecords(){
     foreach(Record *label, records )  {
         qDebug() << label->print();
     }
 }
 
+// hardcoded dimension ordering for the innitial visualization
 void AnalyzerModel::initOrder(){
     order.remove(4);
     order.push_back(QUEUEABLE);
@@ -234,29 +259,33 @@ void AnalyzerModel::initOrder(){
     order.push_back(INTER_CMD_TIME);
 }
 
+// hide a particular dimension
 void AnalyzerModel::hideAt(int position){
     dimensions.at(order.at(position))->visible = false;
     hidden.insert(dimensions.at(order.at(position))->title, order.at(position));
-    //qDebug()<< QString("hid the title = %1, at = %2").arg(dimensions.at(order.at(position))->title).arg(QString::number(order.at(position)));
     order.remove(position);
 }
 
+// insert a previoiusly hidden dimension at a specified position and mark it
+//  as visible
 void AnalyzerModel::insertAt(int position, QString *text){
     int dimensionValue = hidden.value(*text);
-    //qDebug()<< QString("Got here, position = %1, text = %2, dimensionValue: %3").arg(QString::number(position)).arg(*text).arg(QString::number(dimensionValue));
     hidden.remove(*text);
     order.insert(position, dimensionValue);
     dimensions.at(dimensionValue)->visible = true;
 }
 
+// set a specified dimension to a linear scaling
 void AnalyzerModel::setLinear(int position){
     dimensions.at(order.at(position))->scaleEq = new Linear();
 }
 
+// set a specified dimension to a logarithmic scaling
 void AnalyzerModel::setLog(int position){
     dimensions.at(order.at(position))->scaleEq = new LogTen();
 }
 
+// load a dataset from a specified file
 bool AnalyzerModel::loadFile(const QString &fileName){
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
@@ -273,7 +302,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
     list = in.readLine().split(",");
     count = list.size();
 
-    // dimensions
+    // initialize dimensions (set name/values for labeling, and log/linear scaling)
     for(int i = 0; i<count;i++){
         Discrete *discretePointer = new Discrete(i, list.at(i), true, new Linear());
         Dimension *newDim = discretePointer;
@@ -334,10 +363,8 @@ bool AnalyzerModel::loadFile(const QString &fileName){
     }
 
     list.clear();
-    //QVector<Record> records;
-    //records.reserve(5);
 
-    // records
+    // read in records
     Record *tempRecord;
     long current = 0;
     double currentValue = 0;
@@ -354,6 +381,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
         tempRecord->brushed = false;
         current++;
 
+        // expect particular types for each dimension, some being hardcoded strings expected
         for(int i = 0; i<count;i++){
             currentValue = list.at(i).toDouble();
             switch (i){
@@ -373,7 +401,6 @@ bool AnalyzerModel::loadFile(const QString &fileName){
                 tempRecord->queueable = (list.at(i).compare(QString('q')) == 0) ? 1 : 0;
                 currentValue = tempRecord->queueable;
                 dimensions.at(4)->incrementCount(currentValue);
-                //qDebug() << QString("value: %1, compare to: %2, equals: %3, queueable: %4").arg(list.at(i)).arg(QString('q')).arg(QString::number(list.at(i).compare(QString('q')))).arg(QString::number(tempRecord->queueable));
                 break;
             case 5:
                 if(list.at(i).compare(QString('W')) == 0){
@@ -421,7 +448,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
                     tempRecord->alignment = ALIGNED_FULLY_UNALIGNED;
                 else{
                     tempRecord->alignment = ALIGNED_NONE;
-                    if(list.at(i).length()) qDebug() << "***alignment ERROR READING IN!! ** " + list.at(i);
+                    if(list.at(i).length()) qDebug() << "*** Alignment: unknown value in input file ** " + list.at(i);
                 }
                 currentValue = tempRecord->alignment;
                 dimensions.at(9)->incrementCount(currentValue);
@@ -454,7 +481,7 @@ bool AnalyzerModel::loadFile(const QString &fileName){
                     tempRecord->sequential = SEQ_STREAM;
                 else{
                     tempRecord->sequential = SEQ_NONE;
-                    //if(list.at(i).length()) qDebug() << "***sequential ERROR READING IN!! ** " + list.at(i);
+                    //if(list.at(i).length()) qDebug() << "***Sequential: unknown value in input file ** " + list.at(i);
                 }
                 currentValue = tempRecord->sequential;
                 dimensions.at(16)->incrementCount(currentValue);
@@ -473,38 +500,46 @@ bool AnalyzerModel::loadFile(const QString &fileName){
 
             if (currentValue < dimensions.at(i)->min)
                 dimensions.at(i)->min = currentValue;
-            //if(i == 4) qDebug() << QString("current: %1, max: %2").arg(QString::number(list.at(i).toInt())).arg(QString::number(dimensions.at(i)->max));
+
             if (currentValue > dimensions.at(i)->max)
                 dimensions.at(i)->max = currentValue;
         }
         list.clear();
     }
 
+    // calculate the range for each dimension (min-max)
     for(int i = 0; i<count;i++){
         dimensions.at(i)->difference = dimensions.at(i)->max - dimensions.at(i)->min;
+
+        // for discrete dimensions with only one or no values, set max to 1.0
         if(!isEnumDim(i) && dimensions.at(i)->max == dimensions.at(i)->min){
             dimensions.at(i)->max = 1.0;
-            //order.remove(i);
-            //dimensions.at(i)->visible = false;
         }
         dimensions.at(i)->currentMin = dimensions.at(i)->min;
         dimensions.at(i)->currentMax = dimensions.at(i)->max;
-//        qDebug() << QString("dimension: %1, min: %2, max: %3").arg(QString::number(i)).arg(QString::number(dimensions.at(i)->min)).arg(QString::number(dimensions.at(i)->max));
     }
     count = order.size();
+
+    // print each dimension and min/max for debugging purposes
+    /*
     for(int i = 0; i<count;i++){
-//        qDebug() << QString("dimension: %1, min: %2, max: %3").arg(QString::number(i)).arg(QString::number(dimensions.at(i)->min)).arg(dimensions.at(i)->max, 0, 'g', 8);
+        qDebug() << QString("dimension: %1, min: %2, max: %3").arg(QString::number(i)).arg(QString::number(dimensions.at(i)->min)).arg(dimensions.at(i)->max, 0, 'g', 8);
     }
+    */
 
     count = records.size();
+
+    // report the number of records
     qDebug() << "done";
     qDebug() << count;
 
     file.close();
 
+    // proceed to identify threads and generate colors for each one
     generateColorThreads();
     colorThreads = false;
 
+    // apply hardcoded initial dimension ordering
     initOrder();
 
     return true;

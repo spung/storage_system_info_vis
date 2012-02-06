@@ -46,17 +46,17 @@ void Discrete::resetFocusCounts(){
     }
 }
 
-// insert a new name/value
+// insert a new name/value (for labeling)
 void Discrete::insertNameValue(QString *name){
     nameValues.append(*name);
 }
 
-// return the size of the name/values collection
+// return the size of the name/values collection (for labeling)
 int Discrete::getNameValuesSize(){
     return nameValues.size();
 }
 
-// return the name at a particular discrete value
+// return the name at a particular discrete value (for labeling)
 QString Discrete::getNameValueAt(int position){
     return nameValues.at(position);
 }
@@ -91,7 +91,7 @@ void Discrete::incrementFocusCount(int position){
     focusCount.replace(position, current + 1);
 }
 
-// return the position value of a discrete data value
+// return the position value of a discrete data value (for labeling)
 double Discrete::getValue(int mode, double value){
     // currently there is no differentiation between overview and focus modes
     if(mode == MODE_OVERVIEW){

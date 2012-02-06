@@ -83,10 +83,19 @@ class Discrete: public Dimension
         //  when a focus is set
         QVector<int> focusCount;
 
+        // return the position value corresponding to the data value
         double getValue(int mode, double value);
+
+        // initialize the count for the discrete dimension
         void initCount(int numValues);
+
+        // return the count for a particular discrete position (for histograms)
         int getCount(int position);
+
+        // return the count within a focus for a particular discrete position (for histograms)
         int getFocusCount(int position);
+
+        // initialize the focus counts prior to generating them when another focus is generated
         void resetFocusCounts();
 
         // increments the count of records at a particular discrete value
@@ -97,9 +106,13 @@ class Discrete: public Dimension
         // (for histograms) for a particular focus applied
         void incrementFocusCount(int position);
 
-        // inserts a name/value, used in parsing/initilization of dimensions
+        // inserts a name/value, used in parsing/initilization of dimensions (for labeling)
         void insertNameValue(QString *name);
+
+        // return the number of name value pairs (for labeling)
         int getNameValuesSize();
+
+        // returns the name at a discrete position (for labeling)
         QString getNameValueAt(int position);
 };
 
