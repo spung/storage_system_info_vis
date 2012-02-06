@@ -9,10 +9,15 @@ class Equation
 {
     public:
         Equation();
+
+        // Computes the value with the current set equation
         virtual double getValue(double min, double max, double value);
+
+        // Returns the type of equation currently set
         virtual QString getType();
 };
 
+// Linear equation
 class Linear: public Equation
 {
     public:
@@ -21,6 +26,7 @@ class Linear: public Equation
         virtual QString getType();
 };
 
+// Logarithmic equation
 class LogTen: public Equation
 {
     public:

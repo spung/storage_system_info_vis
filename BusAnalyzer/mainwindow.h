@@ -77,7 +77,6 @@ public slots:
     void refresh();
 
 private slots:
-    //void renderIntoPixmap();
     void setMinField(int value);
     void setMaxField(int value);
     void setMinSlider(QString value);
@@ -111,7 +110,6 @@ private:
     QSize getSize();
     void setCurrentFile(const QString &fileName);
     void removeDim(int position);
-    //void insertDim(int position, int dimension);
 
     QString curFile;
 

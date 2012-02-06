@@ -8,13 +8,14 @@ double Equation::getValue(double min, double max, double value){
 }
 QString Equation::getType(){ return QString("equation");}
 
+// Linear equation
 Linear::Linear(){}
 double Linear::getValue(double min, double max, double value){
     return (value-min)/(max-min);
 }
-
 QString Linear::getType(){ return QString("linear");}
 
+// Logarithmic equation
 LogTen::LogTen(){}
 double LogTen::getValue(double min, double max, double value){
     if(value == 0 || value <= min) return min;

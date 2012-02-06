@@ -2,9 +2,9 @@
 
 Record::Record(){}
 
+// helper function to print all values of a record
 QString Record::print(){
     QString returnVal = "";
-
     returnVal.append(QString::number(startTime, 'g', 10) + ",");
     returnVal.append(QString::number(endTime, 'g', 10) + ",");
     returnVal.append(QString::number(startId) + ",");
@@ -27,6 +27,7 @@ QString Record::print(){
     return returnVal;
 }
 
+// returns the value of the record at a particular dimension
 double Record::at(int index){
     switch(index){
     case 0:
