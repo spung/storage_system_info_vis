@@ -1,3 +1,9 @@
+/**
+    Author: Steven Pungdumri
+    Thesis: An Interactive Visualization Model for Analyzing Data Storage System Workloads
+    2/6/2012
+**/
+
 #ifndef RANGE_H
 #define RANGE_H
 
@@ -7,6 +13,8 @@ namespace Ui {
     class Range;
 }
 
+// a dialog class for selecting ranges of data (brushing, focus)
+//  the rest is designed in range.ui
 class Range : public QDialog
 {
     Q_OBJECT

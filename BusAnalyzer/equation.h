@@ -1,3 +1,9 @@
+/**
+    Author: Steven Pungdumri
+    Thesis: An Interactive Visualization Model for Analyzing Data Storage System Workloads
+    2/6/2012
+**/
+
 #ifndef EQUATION_H
 #define EQUATION_H
 #include <stdio.h>
@@ -5,6 +11,8 @@
 #include <stdlib.h>
 #include <QString>
 
+// equation class is used to display dimensions on different scales.
+//  this allows further development in other equations to use for displaying dimensions
 class Equation
 {
     public:

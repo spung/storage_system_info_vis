@@ -1,3 +1,9 @@
+/**
+    Author: Steven Pungdumri
+    Thesis: An Interactive Visualization Model for Analyzing Data Storage System Workloads
+    2/6/2012
+**/
+
 #ifndef RECORD_H
 #define RECORD_H
 
@@ -41,6 +47,7 @@
 #define SEQ_STREAM    2
 #define SEQ_NONE      0
 
+// record is a class used for each entry in the dataset
 class Record
 {
 public:

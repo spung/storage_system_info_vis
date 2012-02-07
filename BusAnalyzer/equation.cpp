@@ -1,3 +1,9 @@
+/**
+    Author: Steven Pungdumri
+    Thesis: An Interactive Visualization Model for Analyzing Data Storage System Workloads
+    2/6/2012
+**/
+
 #include "equation.h"
 #include <QDebug>
 #include <QString>

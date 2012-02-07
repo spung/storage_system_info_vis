@@ -1,11 +1,14 @@
+/**
+    Author: Steven Pungdumri
+    Thesis: An Interactive Visualization Model for Analyzing Data Storage System Workloads
+    2/6/2012
+**/
+
 #include "globject.h"
 #include <QKeyEvent>
 
 // constructor
-GLObject::GLObject()
-{
-    setWindowTitle("Bus Analyzer");
-}
+GLObject::GLObject(){}
 
 // empty destructor
 GLObject::~GLObject(){}
@@ -30,22 +33,25 @@ void GLObject::initializeGL(){
     reset();
 }
 
+// reset and reinitialize all transformation variables
 void GLObject::reset(){
     refreshTranslations();
     scaleVal = 0.0;
 }
 
+// reset and reinitialize all translation variables
 void GLObject::refreshTranslations(){
     xTranslate = width()/2.0;
     yTranslate = height()/2.0;
 }
 
+// capture mouse events
 void GLObject::mouseMoveEvent(QMouseEvent *event)
 {
     int dx = event->x() - lastPos.x();
     int dy = event->y() - lastPos.y();
 
-
+    // for left button click and drags, calculate translation values
     if(Qt::LeftButton){
         if(scaleVal != 0){
             xTranslate += dx/(scaleVal*4.0);
@@ -55,7 +61,6 @@ void GLObject::mouseMoveEvent(QMouseEvent *event)
             xTranslate += dx;
             yTranslate += dy;
         }
-        //qDebug()<<QString("moved: width: %1, height: %2").arg(width()).arg(height());
     }
 
     lastPos = event->pos();
@@ -63,14 +68,10 @@ void GLObject::mouseMoveEvent(QMouseEvent *event)
     emit valueChanged();
 }
 
+// capture mouse presses for calculating drag movements for translations
 void GLObject::mousePressEvent(QMouseEvent *event)
 {
-    //qDebug()<<QString("mouse clicked at: x: %1, y: %2").arg(event->x()).arg(event->y());
     lastPos = event->pos();
-}
-
-void GLObject::setXRotation(int value){
-    scaleVal = value/10.0;
 }
 
 // called when the window is resized
@@ -90,6 +91,7 @@ void GLObject::resizeGL(int width, int height){
     glLoadIdentity(); //reset modelview matrix
 }
 
+// draws a circle with specified x and y coordinates, radius, and number of segments desired
 void circle(float x, float y, float r, int segments)
 {
     glBegin( GL_TRIANGLE_FAN );
@@ -101,15 +103,10 @@ void circle(float x, float y, float r, int segments)
     glEnd();
 }
 
-// openGL painting code goes here
+// openGL painting code
 void GLObject::paintGL(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen and depth buffer
     glLoadIdentity(); // reset current modelview matrix
-
-//    glBegin(GL_LINES);
-//        glVertex3f(-1.80f,  -1.0f, 0.0f); // Top Left
-//        glVertex3f( 1.80f,  -1.0f, 0.0f); // Top Right
-//    glEnd();
 
     double smallVal = 0.000000000001;
     double labelZVal = -1.0*smallVal;
@@ -126,7 +123,6 @@ void GLObject::paintGL(){
         double horizontalInc = this->width()/(model->order.size()-1);
 
         glPushMatrix();
-//        qDebug()<<QString("xTrans: %1, yTrans: %2").arg(xTranslate).arg(yTranslate);
         glTranslatef(p2w_x(xTranslate), - p2w_y(yTranslate), -2.5f + 2.0*scaleVal); // Move 2.5 into the screen
 
         // draw axes
@@ -134,14 +130,10 @@ void GLObject::paintGL(){
         drawY2 = -p2w_y(1.0 * this->height());
 
         int orderCount = model->order.size();
-        int windowIncr = this->width()/orderCount*1.01;
         float minPosition = -p2w_y(0.02 * this->height());
         float maxPosition = -p2w_y(0.98 * this->height());
-        float worldHeight = -p2w_y(this->height());
         for(int currentDimPos = 0; currentDimPos < orderCount;currentDimPos++){
             drawX1 = p2w_x(horizontalInc * currentDimPos);
-            //qDebug()<< QString("axis: %1 drawX1: %2").arg(currentDimPos).arg(drawX1);
-            //qDebug()<< QString("current: %1  horizontal incr: %2  position: %3").arg(QString::number(model->order.at(currentDimPos))).arg(QString::number(p2w_x(horizontalInc))).arg(QString::number(drawX1));
             glColor4f(0.0, 0.0, 0.0, 0.15); // set color
             glBegin(GL_QUADS);
                 glVertex3f(drawX1 - axisWidth, drawY1, axesZVal);
@@ -152,8 +144,6 @@ void GLObject::paintGL(){
 
             glColor3f(0.0, 0.0, 0.0);
             drawX1 -= 0.05;
-            //this->renderText(drawX1, p2w_y(this->height()), 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
-            //this->renderText(drawX1, drawY1 + 0.01, 0.01, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
             this->renderText(drawX1, drawY1 + 0.002 + p2w_y(yTranslate) - 0.8*scaleVal, labelZVal, QString("%1").arg(model->dimensions.at(model->order.at(currentDimPos))->title, 7, ' '));
 
             glColor3f(1.0, 0.0, 0.0);
@@ -163,18 +153,7 @@ void GLObject::paintGL(){
             if(values != 0){
                 Discrete *currentDiscrete = dynamic_cast<Discrete*>(currentDim);
                 for(int i = 0; i<values; i++){
-                    /* color labels
-                    glColor4f(0.0, 1.0, 0.0, 0.15);
-                    float labelY = 0.03;
-                    glBegin(GL_QUADS);
-                        glVertex3f(drawX1 - 0.01, -p2w_y(i*1.0/(values-1) * this->height()) + labelY, 0.01);
-                        glVertex3f(drawX1 - 0.01, -p2w_y(i*1.0/(values-1) * this->height()) - labelY+0.01, 0.01);
-                        glVertex3f(drawX1 + 0.20, -p2w_y(i*1.0/(values-1) * this->height()) - labelY+0.01, 0.01);
-                        glVertex3f(drawX1 + 0.20, -p2w_y(i*1.0/(values-1) * this->height()) + labelY, 0.01);
-                    glEnd();
 
-                    glColor4f(0.0, 0.0, 0.0, 1.0);
-                    */
                     if(i == 0){
                         this->renderText(drawX1, minPosition, labelZVal, currentDiscrete->getNameValueAt(i));
                     }
@@ -185,12 +164,11 @@ void GLObject::paintGL(){
                     double histValue = model->getHistogramValue(currentDiscrete->id, i);
 
                     float histogramWidth =  fabs(p2w_x(horizontalInc) - p2w_x(horizontalInc*2)) * histValue;
-                    //qDebug() << QString("here::: %1").arg(histValue);
-                    //qDebug() << QString("horizInc: %1 count: %2 total_recs: %3 count/total_rec: %4 horizInc*count/total_rec: %5").arg(drawX1).arg(currentDiscrete->getCount(i)).arg(model->records.size()).arg(1.0*currentDiscrete->getCount(i)/model->records.size()).arg(histogramWidth);
                     glColor4f(1.0, 0.0, 0.0, 0.15);
                     circle(drawX1 + 0.05, -p2w_y(i*1.0/(values-1) * this->height()), histogramWidth/2, 36);
+
+                    //  square/rectangle histograms
                     /*
-                      squares
                     glBegin(GL_QUADS);
                         glVertex3f(drawX1 + 0.05- histogramWidth/2, -p2w_y(i*1.0/(values-1) * this->height()) + histogramHeight, 0.01);
                         glVertex3f(drawX1 + 0.05- histogramWidth/2, -p2w_y(i*1.0/(values-1) * this->height()) - histogramHeight, 0.01);
@@ -230,22 +208,19 @@ void GLObject::paintGL(){
                     (model->mode == MODE_FOCUS && rec->at(model->focus_dimension->id) <= model->focus_max && rec->at(model->focus_dimension->id) >= model->focus_min)){
 
                 if(model->colorThreads){
-                    //qDebug() << QString("hue: %1 saturation: %2 brightness: %3").arg(QString::number(rec->color.hslHue())).arg(QString::number(rec->color.saturation())).arg(QString::number(rec->color.value()));
                     glColor4f(rec->color.redF(), rec->color.greenF(), rec->color.blueF(), 0.55);
                 }
                 else if(rec->brushed){
                     glColor4f(1.0, 0.0, 0.0, 0.15);
-                    //glTranslatef(0.0f, 0.0f, 0.001f);
                 }
                 else{
                     glColor4f(0.0, 0.0, 0.0, 0.15);
                 }
                 for(int currentDimPos = 0; currentDimPos < orderCount;currentDimPos++){
                     currDim = model->dimensions.at(model->order.at(currentDimPos));
-    //                if(!currDim->visible) currDim = model->dimensions.at(currentDimPos + 1);
+
                     if((currentDimPos + 1) < model->order.size()){
                         nextDim = model->dimensions.at(model->order.at(currentDimPos+1));
-    //                    if(!nextDim->visible) nextDim = model->dimensions.at(currentDimPos + 2);
 
                         xVal1 = currentDimPos;
                         xVal2 = currentDimPos + 1;
@@ -260,34 +235,17 @@ void GLObject::paintGL(){
                         drawX2 =  p2w_x(horizontalInc*(currentDimPos+1));
 
                         glBegin(GL_LINES);
-                            //glColor3f(1.0f, 0.0f, 0.0f); // Red color
-                            //qDebug() << QString("drawing: %1, %2 to %3, %4").arg(drawX1).arg(drawY1).arg(drawX2).arg(drawY2);
                             glVertex3f(drawX1, drawY1, recordZVal);
                             glVertex3f(drawX2, drawY2, recordZVal);
                         glEnd();
-
-                        if(currentDimPos == 5){
-    //                        if(drawY1 > this->height())
-    //                            qDebug() << QString("over: record: %1, raw value:%2  height: %3  drawing: %4").arg(counter).arg(yVal2).arg(p2w_y(this->height())).arg(drawY2);
-    //                        if(drawY2 > this->height())
-    //                            qDebug() << QString("over: record: %1, current dimension:%2  height: %3  drawing: %4").arg(counter).arg(currentDimPos).arg(this->height()).arg(drawY2);
-                        }
-    //                    if(drawY1 > this->height())
-    //                        qDebug() << QString("over: record: %1, current dimension:%2  height: %3  drawing: %4").arg(counter).arg(currentDimPos).arg(this->height()).arg(drawY1);
-    //                    if(drawY2 > this->height())
-    //                        qDebug() << QString("over: record: %1, current dimension:%2  height: %3  drawing: %4").arg(counter).arg(currentDimPos).arg(this->height()).arg(drawY2);
                     }
                 }
                 counter++;
-                //if(rec->brushed)
-                    //glTranslatef(0.0f, 0.0f, -0.001f);
             }
         }
         glPopMatrix();
-        //qDebug()<<"done draw loop";
 
         emit doneRendering();
-        //qDebug()<<"emitted value changed";
     }
 }
 

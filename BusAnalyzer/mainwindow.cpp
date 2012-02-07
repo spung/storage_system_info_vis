@@ -37,7 +37,11 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
+/**
+    Author: Steven Pungdumri (additions to the nokia template)
+    Thesis: An Interactive Visualization Model for Analyzing Data Storage System Workloads
+    2/6/2012
+**/
 #include <QtGui>
 #include <QtOpenGL>
 
@@ -50,15 +54,13 @@ MainWindow::MainWindow()
     statusBar()->showMessage(tr(("Ready")));
 
     glWidget = new GLObject();
-//    connect(glWidget, SIGNAL(valueChanged()),
-//            this, SLOT(setPixelmap()) );
+
     pixmapLabel = new QLabel;
 
     glWidgetArea = new QScrollArea;
     glWidgetArea->setWidget(glWidget);
     glWidgetArea->setWidgetResizable(true);
-//    glWidgetArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-//    glWidgetArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
     glWidgetArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     glWidgetArea->setMinimumSize(50, 50);
 
@@ -85,7 +87,7 @@ MainWindow::MainWindow()
     connect(glWidget, SIGNAL(valueChanged()), this, SLOT(refresh()));
     connect(glWidget, SIGNAL(doneRendering()), this, SLOT(finishedDrawing()));
 
-    setWindowTitle(tr("Bus Analyzer"));
+    setWindowTitle(tr("Storage System Workload Visualization"));
     resize(1024, 600);
 
     model = NULL;
@@ -94,7 +96,6 @@ MainWindow::MainWindow()
 void MainWindow::ctxMenu(const QPoint &pos){
     if(model != NULL){
 
-        //float section = pixmapLabel->width()/(2*model->order.size() - 1);
         float section = glWidget->width()/(2*model->order.size() - 1);
         int clickedSection = (pos.x())/section;
 
@@ -108,29 +109,23 @@ void MainWindow::ctxMenu(const QPoint &pos){
             marginClick(pos);
         }
     }
-//    qDebug() << QString("Position: x: %1, y: %2").arg(QString::number(pos.x())).arg(QString::number(pos.y()));
-//    qDebug()<< QString("width: %1").arg(QString::number(glWidget->width()));
-//    qDebug() << QString("Clicked on: %1").arg(QString::number(clickedSection));
 }
 
 void MainWindow::setLinear(){
     model->setLinear(this->sectionClicked/2);
     qDebug() << QString("converting %1 to linear...").arg(QString::number(this->sectionClicked/2));
-    //this->setGL();
     this->refresh();
 }
 
 void MainWindow::setLog(){
     model->setLog(this->sectionClicked/2);
     qDebug() << QString("converting %1 to log...").arg(QString::number(this->sectionClicked/2));
-    //this->setGL();
     this->refresh();
 }
 
 void MainWindow::hideDim(){
     model->hideAt(this->sectionClicked/2);
     qDebug() << QString("hiding %1...").arg(QString::number(this->sectionClicked/2));
-    //this->setGL();
     this->refresh();
 }
 
@@ -142,7 +137,6 @@ void MainWindow::marginClick(const QPoint &pos){
     while(iter.hasNext()){
         insertMenu->addAction(tr(qPrintable(iter.next().key())), this, SLOT(insertDim()) );
     }
-   // menu->exec(pixmapLabel->mapToGlobal(pos));
     menu->exec(glWidget->mapToGlobal(pos));
 }
 
@@ -150,8 +144,6 @@ void MainWindow::insertDim(){
     QAction *sender = (QAction*) this->sender();
     qDebug()<< sender->text();
     model->insertAt(sectionClicked-sectionClicked/2, &(sender->text()));
-    qDebug() << QString("inserting at %1...").arg(QString::number(this->sectionClicked/2));
-    //this->setGL();
     this->refresh();
 }
 
@@ -349,8 +341,8 @@ void MainWindow::setGL()
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About Bus Analyzer"),
-            tr("Steven Pungdumri's Thesis:\n\nThis tool provides an interactive experience in visualizing workload data, allowing manipulation of the graph by reordering axes, concealing axes, highlighting particular ranges of data, scaling particular areas of interest, and viewing the machine suggested areas of interest."));
+    QMessageBox::about(this, tr("About Storage System Workload Visualization"),
+            tr("Steven Pungdumri's Thesis:\n\nThis tool provides an interactive experience in visualizing workload data, allowing manipulation of the graph by reordering axes, concealing axes, highlighting particular ranges of data, scaling particular areas of interest, and viewing the machine suggested areas of interest. \n\nIt also assigns unique colors to identified threads and renders this when enabled. \n\nWork conducted with Western Digital Corporation."));
 }
 
 void MainWindow::createActions()
@@ -359,22 +351,6 @@ void MainWindow::createActions()
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
-
-    /*
-    renderIntoPixmapAct = new QAction(tr("&Render into Pixmap..."), this);
-    renderIntoPixmapAct->setShortcut(tr("Ctrl+R"));
-    connect(renderIntoPixmapAct, SIGNAL(triggered()),
-            this, SLOT(renderIntoPixmap()));
-
-    grabFrameBufferAct = new QAction(tr("&Grab Frame Buffer"), this);
-    grabFrameBufferAct->setShortcut(tr("Ctrl+G"));
-    connect(grabFrameBufferAct, SIGNAL(triggered()),
-            this, SLOT(grabFrameBuffer()));
-
-    clearPixmapAct = new QAction(tr("&Clear Pixmap"), this);
-    clearPixmapAct->setShortcut(tr("Ctrl+L"));
-    connect(clearPixmapAct, SIGNAL(triggered()), this, SLOT(clearPixmap()));
-*/
 
     resetAct = new QAction(tr("&Reset Transforms"), this);
     resetAct->setShortcut(tr("Ctrl+R"));
@@ -412,7 +388,6 @@ void MainWindow::setCurrentFile(const QString &fileName)
 //! [46] //! [47]
 {
     curFile = fileName;
-    //textEdit->document()->setModified(false);
     setWindowModified(false);
 
     QString shownName = curFile;
@@ -425,8 +400,6 @@ void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(openAct);
-//    fileMenu->addAction(grabFrameBufferAct);
-//    fileMenu->addAction(clearPixmapAct);
     fileMenu->addAction(resetAct);
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
@@ -475,6 +448,7 @@ void MainWindow::loadFile(const QString &fileName)
     resetAct->setEnabled(true);
     threadModeAct->setEnabled(true);
 }
+
 /* Possibly don't need these functions */
 
 void MainWindow::grabFrameBuffer()

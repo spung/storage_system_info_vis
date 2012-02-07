@@ -1,3 +1,9 @@
+/**
+    Author: Steven Pungdumri
+    Thesis: An Interactive Visualization Model for Analyzing Data Storage System Workloads
+    2/6/2012
+**/
+
 #ifndef DIMENSION_H
 #define DIMENSION_H
 #include "equation.h"
@@ -16,6 +22,7 @@ typedef struct label {
    double value;
 } label;
 
+// a class representing each dimension/axis in the dataset/visualization
 class Dimension
 {
     public:

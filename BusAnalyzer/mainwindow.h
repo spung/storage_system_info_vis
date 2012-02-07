@@ -38,6 +38,12 @@
 **
 ****************************************************************************/
 
+/**
+    Author: Steven Pungdumri (additions to the nokia template)
+    Thesis: An Interactive Visualization Model for Analyzing Data Storage System Workloads
+    2/6/2012
+**/
+
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -61,6 +67,7 @@ class QSlider;
 QT_END_NAMESPACE
 class GLWidget;
 
+// the main window of the tool
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -141,9 +148,10 @@ private:
     QAction *openAct;
     QAction *resetAct;
 
+    // model contains all records and dimensions of the dataset,
+    //  including tool state (overview/focus/brushing)
     AnalyzerModel *model;
     int renderCount;
-
 
 protected:
     void resizeEvent(QResizeEvent *e);

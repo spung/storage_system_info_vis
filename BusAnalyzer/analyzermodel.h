@@ -1,3 +1,9 @@
+/**
+    Author: Steven Pungdumri
+    Thesis: An Interactive Visualization Model for Analyzing Data Storage System Workloads
+    2/6/2012
+**/
+
 #ifndef ANALYZERMODEL_H
 #define ANALYZERMODEL_H
 
@@ -39,6 +45,7 @@
 #define STREAM_NUM              17
 #define CACHE_HIT               18
 
+// the primary model for the tool, containing records, dimensions, and tool modes
 class AnalyzerModel
 {
 public:
