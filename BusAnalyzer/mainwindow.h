@@ -80,7 +80,6 @@ public:
 
 public slots:
     void setGL();
-    void setPixelmap();
     void refresh();
 
 private slots:
@@ -88,8 +87,6 @@ private slots:
     void setMaxField(int value);
     void setMinSlider(QString value);
     void setMaxSlider(QString value);
-    void grabFrameBuffer();
-    void clearPixmap();
     void about();
     void open();
     void hideDim();
@@ -115,7 +112,6 @@ private:
     QSlider *createSlider(const char *changedSignal, const char *setterSlot);
     void setPixmap(const QPixmap &pixmap);
     QSize getSize();
-    void setCurrentFile(const QString &fileName);
     void removeDim(int position);
 
     QString curFile;

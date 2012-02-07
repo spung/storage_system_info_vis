@@ -56,12 +56,16 @@ class GLObject : public QGLWidget{
 
     // signal callbacks in the mainwindow
     signals:
+        // tells main window that a value(s) have changed
          void valueChanged();
+
+         // tells main window to inform the user rendering is complete
          void doneRendering();
 
     // callbacks made from the mainwindow
     public slots:
-        void refreshTranslations();
+        void setXRotation(int angle); // for scaling
+        void refreshTranslations(); // for refreshing all translations
 
     // handle mouse move events
     protected:

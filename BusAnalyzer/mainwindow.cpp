@@ -47,6 +47,7 @@
 
 #include "mainwindow.h"
 
+// initializations of window components
 MainWindow::MainWindow()
 {
     centralWidget = new QWidget;
@@ -93,6 +94,7 @@ MainWindow::MainWindow()
     model = NULL;
 }
 
+// display a context menu to the user when right-clicking on the visualization
 void MainWindow::ctxMenu(const QPoint &pos){
     if(model != NULL){
 
@@ -111,24 +113,26 @@ void MainWindow::ctxMenu(const QPoint &pos){
     }
 }
 
+// applies a linear scale to a dimension by invoking this action in the model
 void MainWindow::setLinear(){
     model->setLinear(this->sectionClicked/2);
     qDebug() << QString("converting %1 to linear...").arg(QString::number(this->sectionClicked/2));
     this->refresh();
 }
 
+// applies a logarithmic scale to a dimension by invoking this action in the model
 void MainWindow::setLog(){
     model->setLog(this->sectionClicked/2);
-    qDebug() << QString("converting %1 to log...").arg(QString::number(this->sectionClicked/2));
     this->refresh();
 }
 
+// hides a dimension by invoking this action in the model
 void MainWindow::hideDim(){
     model->hideAt(this->sectionClicked/2);
-    qDebug() << QString("hiding %1...").arg(QString::number(this->sectionClicked/2));
     this->refresh();
 }
 
+// handles clicks between axes, prompts the user to insert a hidden dimension
 void MainWindow::marginClick(const QPoint &pos){
     QMenu *menu = new QMenu;
     QMenu *insertMenu = menu->addMenu(tr("Insert..."));
@@ -140,13 +144,14 @@ void MainWindow::marginClick(const QPoint &pos){
     menu->exec(glWidget->mapToGlobal(pos));
 }
 
+// inserts and shows a previously hidden dimension
 void MainWindow::insertDim(){
     QAction *sender = (QAction*) this->sender();
-    qDebug()<< sender->text();
     model->insertAt(sectionClicked-sectionClicked/2, &(sender->text()));
     this->refresh();
 }
 
+// set the overview mode
 void MainWindow::setOverviewMode(){
     model->mode = MODE_OVERVIEW;
     overviewModeAct->setDisabled(true);
@@ -154,6 +159,7 @@ void MainWindow::setOverviewMode(){
     this->refresh();
 }
 
+// set the focus mode
 void MainWindow::setFocusMode(){
     model->mode = MODE_FOCUS;
     focusModeAct->setDisabled(true);
@@ -161,6 +167,7 @@ void MainWindow::setFocusMode(){
     this->refresh();
 }
 
+// set the color thread mode
 void MainWindow::setThreadMode(){
     if(model->colorThreads == false){
         model->colorThreads = true;
@@ -173,22 +180,27 @@ void MainWindow::setThreadMode(){
     this->refresh();
 }
 
+// initiate process to apply a focus
 void MainWindow::focus(){
     getRange(ACTION_FOCUS);
 }
 
+// initiate process to apply a brush
 void MainWindow::brush(){
     getRange(ACTION_BRUSH);
 }
 
+// set the min field to the parameter value
 void MainWindow::setMinField(int value){
     currentMin->setText(QString::number(value));
 }
 
+// set the max field to the parameter value
 void MainWindow::setMaxField(int value){
     currentMax->setText(QString::number(value));
 }
 
+// set the min slider to the parameter value
 void MainWindow::setMinSlider(QString value){
     bool ok;
     int intVal = value.toInt(&ok, 10);
@@ -196,6 +208,7 @@ void MainWindow::setMinSlider(QString value){
         minSlider->setValue(intVal);
 }
 
+// set the max slider to the parameter value
 void MainWindow::setMaxSlider(QString value){
     bool ok;
     int intVal = value.toInt(&ok, 10);
@@ -269,6 +282,7 @@ void MainWindow::getRange(short action){
     }
 }
 
+// handles clicks and passes them on to the model for manipulating axes
 void MainWindow::dimensionClick(const QPoint &pos){
     QMenu *menu = new QMenu;
     menu->addAction(tr("Remove Dimension"), this, SLOT(hideDim()));
@@ -285,7 +299,6 @@ void MainWindow::dimensionClick(const QPoint &pos){
     else{
         equationMenu->addAction(tr("Logarithmic"), this, SLOT(setLog()));
     }
-    //menu->exec(pixmapLabel->mapToGlobal(pos));
     menu->exec(glWidget->mapToGlobal(pos));
 }
 
@@ -316,35 +329,35 @@ void MainWindow::open()
     }
 }
 
+// handles window resizes
 void MainWindow::resizeEvent(QResizeEvent *e)
 {
   // call the base method
   QMainWindow::resizeEvent(e);
     glWidget->refreshTranslations();
-  //this->setGL();
 }
 
+//initialize and set the openGL object
 void MainWindow::setGL()
 {
- //   qDebug() << model->dimensions.at(0)->title;
     glWidget = new GLObject;
 
     connect(glWidget, SIGNAL(valueChanged()),
             this, SLOT(setPixelmap()) );
 
-    //glWidgetArea->hide();
     glWidgetArea->setWidget(glWidget);
     glWidget->model = this->model;
-    //setPixmap(QPixmap());
     this->refresh();
 }
 
+// about menu
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About Storage System Workload Visualization"),
             tr("Steven Pungdumri's Thesis:\n\nThis tool provides an interactive experience in visualizing workload data, allowing manipulation of the graph by reordering axes, concealing axes, highlighting particular ranges of data, scaling particular areas of interest, and viewing the machine suggested areas of interest. \n\nIt also assigns unique colors to identified threads and renders this when enabled. \n\nWork conducted with Western Digital Corporation."));
 }
 
+// create and assign actions to each of the menu items
 void MainWindow::createActions()
 {
     openAct = new QAction(tr("&Open..."), this);
@@ -384,18 +397,7 @@ void MainWindow::refresh(){
     glWidgetArea->show();    
 }
 
-void MainWindow::setCurrentFile(const QString &fileName)
-//! [46] //! [47]
-{
-    curFile = fileName;
-    setWindowModified(false);
-
-    QString shownName = curFile;
-    if (curFile.isEmpty())
-        shownName = "untitled.txt";
-    setWindowFilePath(shownName);
-}
-
+// creates the top menus in the application
 void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
@@ -414,6 +416,7 @@ void MainWindow::createMenus()
     helpMenu->addAction(aboutAct);
 }
 
+// creates a slider to take a range input from the user
 QSlider *MainWindow::createSlider(const char *changedSignal,
                                   const char *setterSlot)
 {
@@ -428,8 +431,8 @@ QSlider *MainWindow::createSlider(const char *changedSignal,
     return slider;
 }
 
+// load a dataset from a file to the model
 void MainWindow::loadFile(const QString &fileName)
-//! [42] //! [43]
 {
     model = new AnalyzerModel();
     if(!model->loadFile(fileName)){
@@ -447,78 +450,4 @@ void MainWindow::loadFile(const QString &fileName)
 
     resetAct->setEnabled(true);
     threadModeAct->setEnabled(true);
-}
-
-/* Possibly don't need these functions */
-
-void MainWindow::grabFrameBuffer()
-{
-    pixmapLabel = new QLabel;
-    QImage image = glWidget->grabFrameBuffer();
-    setPixmap(QPixmap::fromImage(image));
-}
-
-void MainWindow::clearPixmap()
-{
- //   qDebug() << model->dimensions.at(0)->title;
-    glWidget = new GLObject;
-
-    //glWidgetArea->hide();
-    glWidgetArea->setWidget(glWidget);
-    glWidget->model = this->model;
-    //setPixmap(QPixmap());
-    this->refresh();
-}
-
-void MainWindow::setPixmap(const QPixmap &pixmap)
-{
-    pixmapLabel->setPixmap(pixmap);
-    QSize size = pixmap.size();
-    if (size - QSize(1, 0) == pixmapLabelArea->maximumViewportSize())
-        size -= QSize(1, 0);
-    pixmapLabel->resize(size);
-
-    glWidgetArea->setWidget(pixmapLabel);
-}
-
-void MainWindow::setPixelmap()
-{
-    renderCount++;
-    qDebug()<<"received, running setpixelmap";
-    qDebug()<<renderCount;
-    if(renderCount%2 == 0){
-        renderCount = 0;
-        pixmapLabel = new QLabel;
-//        QImage image = glWidget->grabFrameBuffer();
-//        setPixmap(QPixmap::fromImage(image));
-        QImage image = glWidget->grabFrameBuffer();
-        setPixmap(QPixmap::fromImage(image));
-
-        pixmapLabel->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(pixmapLabel, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(ctxMenu(const QPoint &)));
-    }
-    qDebug()<<"finished setting";
-}
-
-QSize MainWindow::getSize()
-{
-    bool ok;
-    QString text = QInputDialog::getText(this, tr("Grabber"),
-                                         tr("Enter pixmap size:"),
-                                         QLineEdit::Normal,
-                                         tr("%1 x %2").arg(glWidget->width())
-                                                      .arg(glWidget->height()),
-                                         &ok);
-    if (!ok)
-        return QSize();
-
-    QRegExp regExp(tr("([0-9]+) *x *([0-9]+)"));
-    if (regExp.exactMatch(text)) {
-        int width = regExp.cap(1).toInt();
-        int height = regExp.cap(2).toInt();
-        if (width > 0 && width < 2048 && height > 0 && height < 2048)
-            return QSize(width, height);
-    }
-
-    return glWidget->size();
 }

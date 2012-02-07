@@ -74,6 +74,11 @@ void GLObject::mousePressEvent(QMouseEvent *event)
     lastPos = event->pos();
 }
 
+// performs the scaling requested by the user
+void GLObject::setXRotation(int value){
+    scaleVal = value/10.0;
+}
+
 // called when the window is resized
 void GLObject::resizeGL(int width, int height){
     // prevent divide by zero in the gluPerspective call
